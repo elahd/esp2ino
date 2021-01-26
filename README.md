@@ -115,10 +115,19 @@ These instructions assume use of Windows, familiarity with the command line, and
    After the device downloads Tasmota, it will reboot, rearrange some files, then boot into Tasmota. *It's critical that you don't disturb the device on the initial boot. No button pushing, unplugging, reloading the web page, etc.*
 6. Kill the Python web server by pressing `Ctrl + C` in the command prompt window.
 
-## ACCESS TASMOTA
+## SET UP TASMOTA
 
-If all went well, you'll see Tasmota's Wi-Fi network:
+**DON'T CONNECT TASMOTA TO YOUR WIFI NETWORK JUST YET!** First, we need to purge Wyze's Wi-Fi calibration data from the plug's flash chip. If we don't remove this data, the plug will disconnect from Wi-Fi every 30-60 seconds.
 
-![Tasmota Wi-Fi Network](screenshots/wyze_plug_flasher_tasmota_wifi.png)
+1. Connect to the Tasmota Wi-Fi network:
 
-Connect and proceed with Tasmota as you normally would.
+    ![Tasmota Wi-Fi Network](screenshots/wyze_plug_flasher_tasmota_wifi.png)
+
+2. In a web browser, go to [`http://192.168.4.1/cs`](http://192.168.4.1/cs):
+
+    ![Tasmota Wi-Fi Network](screenshots/wyze_plug_flasher_tasmota_console.png)
+
+3. Enter `Reset 3` in the command input field and hit `Enter`. The device will reboot.
+4. After the device reboots, unplug it. That is, physically remove it from the electrical outlet for a few seconds.
+5. Plug the device back in.
+6. Set up Tasmota as you normally would.
