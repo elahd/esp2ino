@@ -131,3 +131,9 @@ These instructions assume use of Windows, familiarity with the command line, and
 4. After the device reboots, unplug it. That is, physically remove it from the electrical outlet for a few seconds.
 5. Plug the device back in.
 6. Set up Tasmota as you normally would.
+
+### Device Template
+
+        {"NAME":"WyzePlugWLPP1","GPIO":[0,0,0,0,0,56,0,0,21,0,17,0,0],"FLAG":0,"BASE":18}
+
+   *[(via Tasmota Device Templates Repository)](https://templates.blakadder.com/wyze_WLPP1.html)*
