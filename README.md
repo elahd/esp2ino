@@ -140,6 +140,12 @@ These instructions assume use of Windows, Wyze Plug as target device, familiarit
 
 ### Device Template
 
+#### Wyze Plug
     {"NAME":"WyzePlugWLPP1","GPIO":[0,0,0,0,0,56,0,0,21,0,17,0,0],"FLAG":0,"BASE":18}
 
    *[(via Tasmota Device Templates Repository)](https://templates.blakadder.com/wyze_WLPP1.html)*
+
+#### Wyze Bulb
+    {"NAME":"Wyze Bulb","GPIO":[5728,0,0,0,0,0,0,0,0,416,417,0,0,0],"FLAG":0,"BASE":48}
+
+   *[(via Tasmota Device Templates Repository)](https://templates.blakadder.com/wyze_WLPA19.html)*
