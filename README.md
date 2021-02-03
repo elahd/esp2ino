@@ -1,6 +1,6 @@
-# Wyze Plug Flasher
+# Wyze Plug (and Bulb!) Flasher
 
-Use this software to install third party firmware on the original [Wyze Plug](https://wyze.com/wyze-plug.html) (model WLPP1) *over the air* — that is, without physically opening the device.
+Use this software to install third party firmware on the original [Wyze Plug](https://wyze.com/wyze-plug.html) (model WLPP1) and [Wyze Bulb](https://wyze.com/wyze-bulb.html) (model WLPA19) *over the air* — that is, without physically opening the device.
 
 ***
 
@@ -16,11 +16,11 @@ Use this software to install third party firmware on the original [Wyze Plug](ht
 
 # REQUIREMENTS
 
-1. [**Wyze Plug model WLPP1**](https://wyze.com/wyze-plug.html)
-2. **A third party firmware bin.** I've only tested Tasmota 9.2's full build. This *should* work with ESPurna, esphome, and any other firmware package built using the ESP8266 Arduino framework.
-3. **A computer that supports Python and has an 802.11 b/g/n Wi-Fi adapter.** I've only tested this in Windows 10, but it should work on MacOS and Linux, as well.
+1. [**Wyze Plug**](https://wyze.com/wyze-plug.html) (model WLPP1) or [**Wyze Bulb**](https://wyze.com/wyze-bulb.html) (model WLPA19).
+2. **A third party firmware bin.** I've only tested Tasmota 9.2's full build. WPF *should* work with ESPurna, esphome, and any other firmware package built using the ESP8266 Arduino framework.
+3. **A computer that supports Python and has an 802.11 b/g/n Wi-Fi adapter.** WPF is confirmed to work in Windows and Linux. It should work on MacOS, as well.
 
-Theoretically, Wyze Plug Flasher will convert any device that meets the below criteria (provided that you have a method for pushing the bin to the device):
+Theoretically, WPF will convert any device that meets the below criteria (provided that you have a method for pushing the bin to the device):
 1. Uses an ESP8266 microchip.
 2. Uses [version 3](https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-guides/fota-from-old-new.html) of the [ESP8266 RTOS SDK](https://github.com/espressif/ESP8266_RTOS_SDK).
 3. Uses ESP8266 RTOS SDK's [built-in FOTA libraries](https://github.com/espressif/ESP8266_RTOS_SDK/tree/master/examples/system/ota).
@@ -46,7 +46,7 @@ This project borrows bits and pieces from:
 
 # FLASHING INSTRUCTIONS
 
-These instructions assume use of Windows, familiarity with the command line, and Tasmota as your target firmware. If you're so inclined, use a Python virtual environment.
+These instructions assume use of Windows, Wyze Plug as target device, familiarity with the command line, and Tasmota as your target firmware. If you're so inclined, use a Python virtual environment.
 
 ## SET UP ENVIRONMENT
 
@@ -68,9 +68,15 @@ These instructions assume use of Windows, familiarity with the command line, and
         
         git clone https://github.com/HclX/WyzeUpdater.git
 
-2. Download the latest `wyze_plug_flasher.bin` from [this repo's Releases page](https://github.com/elahd/wyze_plug_flasher/releases) into  `c:\wpf` so that it is accessible as `c:\wpf\wyze_plug_flasher.bin`.
-3. Download the [latest Tasmota bin](https://github.com/arendst/Tasmota/releases/tag/v9.2.0) into  `c:\wpf`. *Be sure to use the full, uncompressed installer with the filename `tasmota.bin`.*
-4. Rename `tasmota.bin` to `thirdparty.bin` so that it is accessible as `c:\wpf\thirdparty.bin`.
+2. Download the latest `wyze_plug_flasher.bin` from [this repo's Releases page](https://github.com/elahd/wyze_plug_flasher/releases) into  `c:\wpf` so that it is accessible as `c:\wpf\wyze_plug_flasher.bin`. From `c:\wpf`, run:
+
+        curl -L https://github.com/elahd/wyze_plug_flasher/releases/latest/download/wyze_plug_flasher.bin -o wyze_plug_flasher.bin
+
+3. Download the [latest Tasmota bin](https://github.com/arendst/Tasmota/releases/tag/v9.2.0) into  `c:\wpf` so that it is accessible as `c:\wpf\thirdparty.bin`. *Be sure to use the full, uncompressed installer with the filename `tasmota.bin`.* From `c:\wpf`, run:
+
+        curl -L http://ota.tasmota.com/tasmota/release/tasmota.bin -o thirdparty.bin
+
+4. If you downloaded  `tasmota.bin` using a web browser, be sure to rename it to `thirdparty.bin`.
 
 ## LOAD WYZE PLUG FLASHER ON TO DEVICE
 1. Use WyzeUpdater to get a list of your Wyze devices. From `c:\wpf\WyzeUpdater`, run:
@@ -127,13 +133,13 @@ These instructions assume use of Windows, familiarity with the command line, and
 
     ![Tasmota Wi-Fi Network](screenshots/wyze_plug_flasher_tasmota_console.png)
 
-3. Enter `Reset 3` in the command input field and hit `Enter`. The device will reboot.
+3. Enter `Reset 5` in the command input field and hit `Enter`. The device will reboot.
 4. After the device reboots, unplug it. That is, physically remove it from the electrical outlet for a few seconds.
 5. Plug the device back in.
 6. Set up Tasmota as you normally would.
 
 ### Device Template
 
-        {"NAME":"WyzePlugWLPP1","GPIO":[0,0,0,0,0,56,0,0,21,0,17,0,0],"FLAG":0,"BASE":18}
+    {"NAME":"WyzePlugWLPP1","GPIO":[0,0,0,0,0,56,0,0,21,0,17,0,0],"FLAG":0,"BASE":18}
 
    *[(via Tasmota Device Templates Repository)](https://templates.blakadder.com/wyze_WLPP1.html)*
