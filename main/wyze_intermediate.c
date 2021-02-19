@@ -57,7 +57,6 @@ const esp_partition_t *part_idle;
 
 uint32_t flash_data;
 uint8_t *flash_data_addr = (uint8_t *)&flash_data;
-// const unsigned int * real_flash_size_ptr;
 static unsigned int real_flash_size;
 
 char buffer[SPI_FLASH_SEC_SIZE] __attribute__((aligned(4))) = {0};
@@ -219,28 +218,27 @@ esp_err_t handleRoot(httpd_req_t *req) {
   char full_ota_url[150];
   build_ota_url(client_ipstr, full_ota_url);
 
-  // BROKEN: Flash size not displaying. Fix later.
   const char *FlashSize = "";
   switch (flash_data_addr[3] & 0xF0) {
-  case 0x0:
+  case 0x00:
     FlashSize = "512K";
     break;
-  case 0x1:
+  case 0x10:
     FlashSize = "256K";
     break;
-  case 0x2:
+  case 0x20:
     FlashSize = "1M";
     break;
-  case 0x3:
+  case 0x30:
     FlashSize = "2M";
     break;
-  case 0x4:
+  case 0x40:
     FlashSize = "4M";
     break;
-  case 0x8:
+  case 0x80:
     FlashSize = "8M";
     break;
-  case 0x9:
+  case 0x90:
     FlashSize = "16M";
     break;
   }
@@ -279,35 +277,36 @@ esp_err_t handleRoot(httpd_req_t *req) {
 
   sprintf(
       buffer,
-      "<h1><i><u>WYZE PLUG FLASHER</u></i></h1>\n"
-      // BROKEN: Backup function not working. Hiding link.
-      //"Download Backup: <a href='http://%s/backup'>http://%s/backup</a>"
-      "<br><br>\n"
-      "Flash Firmware: <a "
-      "href='http://%s/flash?url=%s'>http://%s/flash?url=%s</a>"
-      "<br><br>\n"
-      "Revert to Factory Firmware: <a href='http://%s/undo'>http://%s/undo</a>"
-      "<br><br>\n"
-      "<hr>\n"
-      "<b>Your IP: %s"
-      "\n"
-      "<hr>\n"
-      "<b>MAC:</b> %s"
-      "<br>\n"
-      "<b>FlashMode:</b> %s %s @ %sMHz"
-      "<br>\n"
-      "<b>Configured Boot Partition:</b> %s @ 0x%06x"
-      "<br>\n"
-      "<b>Actual Boot Partition:</b> %s @ 0x%06x"
-      "<br>\n"
-      "<b>Idle Partition:</b> %s @ 0x%06x"
-      "<br>\n"
-      "<b>Idle Partition Content:</b> %s"
-      "<br>\n"
-      "<b>Bootloader:</b> %s"
-      "<br>\n",
-      /* ip, ip, */
-      ip, full_ota_url, ip, full_ota_url, ip, ip, client_ipstr,
+      "<head><meta charset='UTF-8'></head>\n"
+      "<body style='font-family:arial, helvetica, sans-serif'>\n"
+      "<h1><font color='#00d0b9'>WYZE</font> &#x1F50C + &#x1F4A1 &#x2728</h1>\n\n"
+
+      "<h2>Actions</h2>\n\n"
+
+      "<table>\n"
+      "<tr><td><b>Flash Firmware:</b></td><td><a href='http://%s/flash?url=%s'>http://%s/flash?url=%s</a></td></tr>\n"
+      "<tr><td><b>Download Backup:</b></td><td><a href='http://%s/backup'>http://%s/backup</a></td></tr>\n"
+      "<tr><td><b>Revert to Factory Firmware:</b></td><td><a href='http://%s/undo'>http://%s/undo</a></td></tr>\n"
+      "</table>\n\n"
+
+      "<h2>Device Information</h2>\n\n"
+
+      "<table>\n"
+      "<tr><td><b>Your IP:</b></td><td>%s</td></tr>\n"
+      "<tr><td><b>MAC:</b></td><td>%s</td></tr>\n"
+      "<tr><td><b>FlashMode:</b></td><td>%s %s @ %sMHz</td></tr>\n"
+      "<tr><td><b>Configured Boot Partition:</b></td><td>%s @ 0x%06x</td></tr>\n"
+      "<tr><td><b>Actual Boot Partition:</b></td><td>%s @ 0x%06x</td></tr>\n"
+      "<tr><td><b>Idle Partition:</b></td><td>%s @ 0x%06x</td></tr>\n"
+      "<tr><td><b>Idle Partition Content:</b></td><td>%s</td></tr>\n"
+      "<tr><td><b>Bootloader:</b></td><td>%s</td></tr>\n"
+      "</table>\n\n"
+
+      "</body>",
+      ip, full_ota_url, ip, full_ota_url,
+      ip, ip,
+      ip, ip,
+      client_ipstr,
       (char *)macStr, FlashSize, FlashMode, FlashSpeed, part_configured->label,
       part_configured->address, part_running->label, part_running->address,
       part_idle->label, part_idle->address,
@@ -321,9 +320,7 @@ esp_err_t handleRoot(httpd_req_t *req) {
 }
 
 /**
- * BROKEN: handleBackup is not working. Returns .bin with MD5 mismatch. May be caused by
- * spi_flash_get_chip_size() not returning actual flash size. This function
- * retrieves flash size from image headers, not from SPI chip itself.
+ * This function retrieves flash size from image headers, not from SPI chip itself.
  * */
 esp_err_t handleBackup(httpd_req_t *req) {
   ESP_LOGI(TAG, "BEGIN: Sending backup.");
@@ -607,25 +604,25 @@ static int do_flash(const char *url) {
    * Workaround outlined in README.
    * */
 
-  // ESP_LOGI(TAG, "BEGIN: Erasing RF calibration data.");
-  // uint32_t rf_cal_sector = user_rf_cal_sector_set();
+  ESP_LOGI(TAG, "BEGIN: Erasing RF calibration data.");
+  uint32_t rf_cal_sector = user_rf_cal_sector_set();
 
-  // if (!rf_cal_sector) {
-  //   /**
-  //    * If we've made it this far, we're functionally successful,
-  //    * so don't hard fail on error.
-  //    *
-  //    * If we can't clear RF cal data, Tasmota may experience constant
-  //    * WiFi disconnects. This can be fixed with Tasmota console
-  //    * command `Reset 3` followed by a hard power cycle
-  //    * (unplug, then plug back in).
-  //    * */
-  //   ESP_LOGE(TAG, "Failed to get RF calibration data.");
-  // } else {
-  //   ESP_LOGI(TAG, "RF calibration sector at 0x%06x.", rf_cal_sector);
-  //   ret = spi_flash_erase_sector(rf_cal_sector);
-  //   ESP_LOGI(TAG, "DONE: Erasing RF calibration data.");
-  // }
+  if (!rf_cal_sector) {
+    /**
+     * If we've made it this far, we've succeeded in loading the new firmware,
+     * so don't hard fail on error.
+     *
+     * If we can't clear RF cal data, Tasmota may experience constant
+     * WiFi disconnects. This can be fixed with Tasmota console
+     * command `Reset 5` followed by a hard power cycle
+     * (unplug, then plug back in).
+     * */
+    ESP_LOGE(TAG, "Failed to get RF calibration data.");
+  } else {
+    ESP_LOGI(TAG, "RF calibration sector at 0x%06x.", rf_cal_sector);
+    ret = spi_flash_erase_sector(rf_cal_sector);
+    ESP_LOGI(TAG, "DONE: Erasing RF calibration data.");
+  }
 
   return SUCCESS;
 }
