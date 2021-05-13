@@ -1,0 +1,4 @@
+--flash_mode dout
+--flash_size 4MB
+--flash_freq 40m
+0x0 bootloader/bootloader.bin

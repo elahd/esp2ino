@@ -1,0 +1,12 @@
+[
+	{ "id": "mac", "innerHTML": "b4:e6:2d:23:33:ee" },
+	{ "id": "wifi_mode", "innerHTML": "Conneted to Wi-Fi AP (Smart Config)" },
+	{ "id": "client_ip", "innerHTML": "192.168.2.254" },
+	{ "id": "flash_mode", "innerHTML": "4M DOUT @ 40MHz" },
+	{ "id": "part_boot_conf", "innerHTML": "ota_0 @ 0x010000" },
+	{ "id": "part_boot_act", "innerHTML": "ota_0 @ 0x010000" },
+	{ "id": "part_idle", "innerHTML": "ota_1 @ 0x110000" },
+	{ "id": "part_idle_content", "innerHTML": "Factory app" },
+	{ "id": "bootloader", "innerHTML": "Espressif (factory)" },
+	{ "id": "progress", "innerHTML": "<pre>Ready to flash...</pre>" }
+]

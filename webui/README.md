@@ -1,0 +1,1 @@
+https://tinkerman.cat/post/embed-your-website-in-your-esp8266-firmware-image/
