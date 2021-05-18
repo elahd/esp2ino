@@ -107,124 +107,12 @@
 		</div>
 		<!-- Cold Feet: END -->
 
-		<hr class="major" />
+		<hr id="flash-status-hr" class="major" hidden />
 
 		<!-- Flash Status Table: START -->
-		<div class="container center">
+		<div id="flash-status-container" class="container center" hidden>
 			<h3>Flash Status</h3>
-			<table id="flash-status">
-				<tr id="step-1" active>
-					<td>
-						<div class="loader sk-fading-circle">
-							<div class="sk-circle1 sk-circle"></div>
-							<div class="sk-circle2 sk-circle"></div>
-							<div class="sk-circle3 sk-circle"></div>
-							<div class="sk-circle4 sk-circle"></div>
-							<div class="sk-circle5 sk-circle"></div>
-							<div class="sk-circle6 sk-circle"></div>
-							<div class="sk-circle7 sk-circle"></div>
-							<div class="sk-circle8 sk-circle"></div>
-							<div class="sk-circle9 sk-circle"></div>
-							<div class="sk-circle10 sk-circle"></div>
-							<div class="sk-circle11 sk-circle"></div>
-							<div class="sk-circle12 sk-circle"></div>
-						</div>
-						<div class="done">✅</div>
-					</td>
-					<td>
-						<p>Downloading and flashing new firmware.</p>
-						<small>This may take a few minutes.</small>
-					</td>
-				</tr>
-				<tr id="step-2">
-					<td>
-						<div class="loader sk-fading-circle">
-							<div class="sk-circle1 sk-circle"></div>
-							<div class="sk-circle2 sk-circle"></div>
-							<div class="sk-circle3 sk-circle"></div>
-							<div class="sk-circle4 sk-circle"></div>
-							<div class="sk-circle5 sk-circle"></div>
-							<div class="sk-circle6 sk-circle"></div>
-							<div class="sk-circle7 sk-circle"></div>
-							<div class="sk-circle8 sk-circle"></div>
-							<div class="sk-circle9 sk-circle"></div>
-							<div class="sk-circle10 sk-circle"></div>
-							<div class="sk-circle11 sk-circle"></div>
-							<div class="sk-circle12 sk-circle"></div>
-						</div>
-						<div class="done">✅</div>
-					</td>
-					<td>
-						<p>Erasing Espressif bootloader.</p>
-					</td>
-				</tr>
-				<tr id="step-3">
-					<td>
-						<div class="loader sk-fading-circle">
-							<div class="sk-circle1 sk-circle"></div>
-							<div class="sk-circle2 sk-circle"></div>
-							<div class="sk-circle3 sk-circle"></div>
-							<div class="sk-circle4 sk-circle"></div>
-							<div class="sk-circle5 sk-circle"></div>
-							<div class="sk-circle6 sk-circle"></div>
-							<div class="sk-circle7 sk-circle"></div>
-							<div class="sk-circle8 sk-circle"></div>
-							<div class="sk-circle9 sk-circle"></div>
-							<div class="sk-circle10 sk-circle"></div>
-							<div class="sk-circle11 sk-circle"></div>
-							<div class="sk-circle12 sk-circle"></div>
-						</div>
-						<div class="done">✅</div>
-					</td>
-					<td>
-						<p>Writing Arduino bootloader.</p>
-					</td>
-				</tr>
-				<tr id="step-4">
-					<td>
-						<div class="loader sk-fading-circle">
-							<div class="sk-circle1 sk-circle"></div>
-							<div class="sk-circle2 sk-circle"></div>
-							<div class="sk-circle3 sk-circle"></div>
-							<div class="sk-circle4 sk-circle"></div>
-							<div class="sk-circle5 sk-circle"></div>
-							<div class="sk-circle6 sk-circle"></div>
-							<div class="sk-circle7 sk-circle"></div>
-							<div class="sk-circle8 sk-circle"></div>
-							<div class="sk-circle9 sk-circle"></div>
-							<div class="sk-circle10 sk-circle"></div>
-							<div class="sk-circle11 sk-circle"></div>
-							<div class="sk-circle12 sk-circle"></div>
-						</div>
-						<div class="done">✅</div>
-					</td>
-					<td>
-						<p>Saving initialization instructions for Arduino bootloader.</p>
-					</td>
-				</tr>
-				<tr id="step-5">
-					<td>
-						<div class="loader sk-fading-circle">
-							<div class="sk-circle1 sk-circle"></div>
-							<div class="sk-circle2 sk-circle"></div>
-							<div class="sk-circle3 sk-circle"></div>
-							<div class="sk-circle4 sk-circle"></div>
-							<div class="sk-circle5 sk-circle"></div>
-							<div class="sk-circle6 sk-circle"></div>
-							<div class="sk-circle7 sk-circle"></div>
-							<div class="sk-circle8 sk-circle"></div>
-							<div class="sk-circle9 sk-circle"></div>
-							<div class="sk-circle10 sk-circle"></div>
-							<div class="sk-circle11 sk-circle"></div>
-							<div class="sk-circle12 sk-circle"></div>
-						</div>
-						<div class="done">✅</div>
-					</td>
-					<td>
-						<p>Performing housekeeping.</p>
-					</td>
-				</tr>
-			</table>
+			<table id="flash-status"></table>
 		</div>
 		<!-- Flash Status Table: END -->
 
@@ -232,15 +120,15 @@
 
 		<!-- Debug Information: START -->
 		<div class="container center">
-			<button class="accordion button-blue button-outline">
+			<button id="show-device-btn" class="accordion button-blue button-outline">
 				Show Device Info
 			</button>
 			<div id="debug-panel" class="panel">
-				<hr />
+				<hr class="progress" />
 				<!-- Device Status: START -->
-				<div class="container center">
-					<h3>Debug Output</h3>
-					<div id="progress" ready><pre>Initializing...</pre></div>
+				<div id="progress-wrapper" class="progress container center">
+					<h3 class="progress">Debug Output</h3>
+					<div id="progress" class="progress" ready><pre>Initializing...</pre></div>
 				</div>
 				<!-- Device Status: END -->
 

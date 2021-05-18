@@ -1,18 +1,7 @@
-[1;37m[0;37mFetching firmware from http://ota.tasmota.com/tasmota/release/tasmota.bin.
-[1;37m[Task 1 of 5] [0;37m
-[1;37m⏳ Downloading and flashing firmware. [0;37mThis may take a few minutes and you won't see any signs of progress. Be patient...
-[1;92m✅ Successfully downloaded and installed new firmware. [0;92m
-[1;37m[Task 2 of 5] [0;37m
-[1;37m⏳ Erasing factory bootloader... [0;37m
-[1;92m✅ Successfully erased factory bootloader. [0;92m
-[1;37m[Task 3 of 5] [0;37m
-[1;37m⏳ Writing Arduino bootloader... [0;37m
-[1;92m✅ Successfully wrote Arduino bootloader. [0;92m
-[1;37m[Task 4 of 5] [0;37m
-[1;37m⏳ Saving initialization instructions for Arduino bootloader... [0;37m
-[1;92m✅ Successfully saved Arduino bootloader initialization instructions. [0;92m
-[1;37m[Task 5 of 5] [0;37m
-[1;37m⏳ Performing housekeeping... [0;37m
-[1;92m✅ Successfully kept house. [0;92m
-[1;92m🎉 Flashing completed successfully. [0;92mResetting device in 5 seconds.
-🎉
+{"step":"1","state":"1","message":"","type":"flashStatus"}
+{"step":"1","state":"2","message":"","type":"flashStatus"}
+{"step":"2","state":"1","message":"","type":"flashStatus"}
+{"step":"2","state":"4","message":"Failed to download firmware. Trying again. Attempt 1 of 5.","type":"flashStatus"}
+{"step":"3","state":"5","message":"Warn. The quick brown fox jumped over the lazy dog.","type":"flashStatus"}
+{"step":"6","state":"6","message":"Sensitive operations....","type":"flashStatus"}
+{"step":"4","state":"3","message":"Failed. Your device is a brick.","type":"flashStatus"}

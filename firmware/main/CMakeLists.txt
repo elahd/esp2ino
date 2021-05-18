@@ -1,4 +1,7 @@
-set(COMPONENT_SRCS "esp2ino_main.c" "eboot_command.c" "wifi_debug.c")
-set(COMPONENT_ADD_INCLUDEDIRS ".")
+idf_component_register(SRCS "esp2ino_main.c" "eboot_command.c"
+                       INCLUDE_DIRS ".")
 
-register_component()
+# set_source_files_properties(mysrc.c
+# PROPERTIES COMPILE_FLAGS
+# -Wno-unused-variable
+# )

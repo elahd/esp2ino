@@ -1,1 +1,0 @@
-cmd='/usr/local/Cellar/cmake/3.20.1/bin/cmake;-DSDKCONFIG=/Users/Elahd/dev/wyze_plug/wyze_plug_flasher/sdkconfig;-DIDF_PATH=/Users/Elahd/esp/ESP8266_RTOS_SDK;-DIDF_TARGET=esp8266;-DPYTHON_DEPS_CHECKED=1;-DEXTRA_COMPONENT_DIRS=/Users/Elahd/esp/ESP8266_RTOS_SDK/components/bootloader;-DLEGACY_INCLUDE_COMMON_HEADERS=;-GUnix Makefiles;<SOURCE_DIR><SOURCE_SUBDIR>'

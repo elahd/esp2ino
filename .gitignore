@@ -65,6 +65,8 @@ CTestTestfile.cmake
 _deps
 
 build/
-.vscode/
+.vscode/targets.log
 node_modules
 node_modules
+
+__pycache__

@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "surajbarkale.ninja",
+        "kamikillerto.vscode-linthtml"
+    ]
+}

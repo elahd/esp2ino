@@ -46,29 +46,70 @@ hr.major {
 	margin: 0;
 }
 
-#flash-status div.done {
+#flash-status button {
+	display: none;
+	color:rgba(30, 101, 167, 0.8);
+}
+
+#flash-status tr[state="fail"] button {
+	display: block;
+}
+
+#flash-status .secondary {
+	font-size: small;
+}
+
+#flash-status div.emoji {
 	text-align: center;
 }
 
 #flash-status tr {
-	color: #cccccc;
-}
-
-#flash-status tr[active] {
 	color: #606c76;
 }
 
-#flash-status tr .done,
-#flash-status tr .loader {
+#flash-status tr[state="inactive"] {
+	color: #cccccc;
+}
+
+#flash-status tr .emoji,
+#flash-status tr .loader,
+#flash-status tr .update {
 	display: none;
 }
 
-#flash-status tr[active] .loader {
+#flash-status tr[state="success"] .success,
+#flash-status tr[state="fail"] .fail,
+#flash-status tr[state="warn"] .warn,
+#flash-status tr[state="done"] .done
+{
 	display: block;
 }
 
-#flash-status tr[done] .done {
+#flash-status tr[state="running"] .loader,
+#flash-status tr[state="retry"] .loader {
 	display: block;
+}
+
+#flash-status tr[state="retry"] .loader.sk-fading-circle .sk-circle:before {
+	background-color: #f1b900;
+}
+
+#flash-status tr[state="retry"] .update,
+#flash-status tr[state="done"] .update,
+#flash-status tr[state="warn"] .update,
+#flash-status tr[state="fail"] .update {
+	display: block;
+	font-size: small;
+	/* font-weight: bold; */
+}
+
+#flash-status tr[state="retry"] .update,
+#flash-status tr[state="warn"] .update {
+	color: #ff8800;
+}
+
+#flash-status tr[state="fail"] .update {
+	color: red;
 }
 
 /**
@@ -275,6 +316,10 @@ a {
 	transition: 0.4s;
 }
 
+.progress{
+	display: none;
+}
+
 #progress {
 	height: 500px;
 	min-height: 500px;
@@ -304,13 +349,9 @@ a {
 	color: yellow;
 }
 
-.ansi-bright-green-fg {
-	/* color: greenyellow; */
-	color: white;
-}
-
+.ansi-bright-green-fg,
 .ansi-green-fg {
-	color: green;
+	color: greenyellow;
 }
 
 .ansi-red-fg,

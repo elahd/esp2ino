@@ -43,13 +43,15 @@ void stop_webserver(httpd_handle_t server);
 httpd_handle_t start_webserver(void);
 void app_main();
 uint32_t user_rf_cal_sector_set(void);
-cJSON *createElement(char *id, char *innerHTML);
+cJSON *createGenStatusElement(char *id, char *innerHTML);
 int req_get_client_ip(httpd_req_t *req, char ipstr[40]);
+void httpSessionPostProcessor(httpd_handle_t hd, int sockfd);
 
 /** esp2ino_flash.c **/
 static void flash_tsk(void *parm);
 
-/** esp2ino_wifi.c **/
+// /** esp2ino_wifi.c **/
+static bool staWifi_init(void);
 static void wifiFallback_eventHandler(void *arg, esp_event_base_t event_base,
                                       int32_t event_id, void *event_data);
 static void wifiFallback_init(xTimerHandle pxTimer);
@@ -59,9 +61,8 @@ static void smartConfig_eventHandler(void *arg, esp_event_base_t event_base,
                                      int32_t event_id, void *event_data);
 
 /** esp2ino_log.c **/
-static esp_err_t webui_msgPub(httpd_req_t *req, char *intro, char *message,
-                              int msgType);
+static esp_err_t webui_msgPub(httpd_req_t *req, char *step, char *state,
+                              char *message);
 int webui_debugPub(int chr);
-
-/** wifi_debug.c **/
-void wifi_init_sta(void);
+cJSON *createFlashStatusElement(char *stepNum, char *state, char *msg);
+cJSON *createDebugStatusElement(char *msg);

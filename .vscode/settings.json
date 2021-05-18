@@ -1,0 +1,24 @@
+{
+    "python.pythonPath": "/usr/bin/python",
+    "files.associations": {
+        "*.c": "c",
+        "*.h": "c",
+        "*.inc": "c"
+    },
+    "C_Cpp.default.cppStandard": "c++11",
+    "C_Cpp.default.cStandard": "c11",
+    "editor.formatOnSave": true,
+    "clang-format.executable": "${workspaceFolder}/webui/node_modules/.bin/clang-format",
+    "editor.defaultFormatter": "xaver.clang-format",
+    "cmake.buildTask": true,
+    "cmake.debugConfig": {
+        "cwd": "${workspaceFolder}/firmware/build"
+    },
+    "cmake.configureOnEdit": false,
+    "cmake.buildEnvironment": {
+        "CC": "${env:ESP8266_TOOLS}/bin/xtensa-lx106-elf-gcc",
+        "ASM": "${env:ESP8266_TOOLS}/bin/xtensa-lx106-elf-gcc",
+        "CXX": "${env:ESP8266_TOOLS}/bin/xtensa-lx106-elf-g++"
+    },
+    "cmake.generator": "Ninja"
+}
