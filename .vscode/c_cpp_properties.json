@@ -3,7 +3,7 @@
         {
             "name": "Mac",
             "includePath": [ 
-                "${workspaceFolder}/firmware/**",
+                "${workspaceFolder}/source/firmware/backend/**",
                 "${IDF_PATH}/components/**",
                 "${IDF_PATH}/tools/**",
                 "${IDF_PATH}/components/freertos/port/esp8266/include"
@@ -22,7 +22,7 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64",
-            "compileCommands": "${workspaceFolder}/firmware/build/compile_commands.json",
+            "compileCommands": "${workspaceFolder}/source/firmware/backend/build/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],

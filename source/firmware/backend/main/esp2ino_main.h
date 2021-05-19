@@ -48,7 +48,7 @@ int req_get_client_ip(httpd_req_t *req, char ipstr[40]);
 void httpSessionPostProcessor(httpd_handle_t hd, int sockfd);
 
 /** esp2ino_flash.c **/
-static void flash_tsk(void *parm);
+static esp_err_t doFlash(httpd_req_t *req);
 
 // /** esp2ino_wifi.c **/
 static bool staWifi_init(void);

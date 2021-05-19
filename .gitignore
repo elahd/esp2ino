@@ -1,3 +1,10 @@
+# == esp2ino ==
+.vscode/targets.log
+source/firmware/backend/build/
+node_modules
+__pycache__
+
+# == GENERIC ==
 # Prerequisites
 *.d
 
@@ -63,10 +70,3 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
-
-build/
-.vscode/targets.log
-node_modules
-node_modules
-
-__pycache__

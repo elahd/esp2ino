@@ -3,12 +3,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build, Flash, and Monitor (w/ NVS)",
+            "label": "Master: Build All, Flash (w/ Wi-Fi), and Monitor",
             "dependsOn": [
-                "Build",
-                "Flash",
-                "NVS",
-                "Monitor"
+                "Frontend: Build & Import",
+                "Backend: Build",
+                "Backend: Flash",
+                "Backend: NVS",
+                "Backend: Monitor"
             ],
             "dependsOrder": "sequence",
             "problemMatcher": []
@@ -24,12 +25,25 @@
                 "reveal": "always"
             },
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": []
         },
         {
-            "label": "NVS",
+            "label": "Frontend: Build & Import",
+            "type": "shell",
+            "command": "gulp",
+            "presentation": {
+                "reveal": "always"
+            },
+            "runOptions": { "reevaluateOnRerun": false},
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/frontend"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Backend: NVS",
             "type": "shell",
             "command": "${config:python.pythonPath}",
             "args": [
@@ -54,14 +68,14 @@
                 "--flash_size",
                 "4MB",
                 "0x9000",
-                "../../nvs9000.bin"
+                "${workspaceRoot}/../nvs9000.bin"
             ],
             "presentation": {
                 "reveal": "always"
             },
             "runOptions": { "reevaluateOnRerun": false},
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": []
         },
@@ -86,7 +100,7 @@
                 "echo": true
             },
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": {
                 "owner": "cpp",
@@ -102,7 +116,7 @@
             }
         },
         {
-            "label": "Build",
+            "label": "Backend: Build",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -117,7 +131,7 @@
                 "echo": true
             },
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": {
                 "base": "$gcc",
@@ -125,7 +139,7 @@
             }
         },
         {
-            "label": "Monitor",
+            "label": "Backend: Monitor",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -154,11 +168,11 @@
                 }
             },
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             }
         },
         {
-            "label": "Flash",
+            "label": "Backend: Flash",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -175,7 +189,7 @@
                 "reveal": "always"
             },
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": {
                 "owner": "cpp",
@@ -191,7 +205,7 @@
             }
         },
         {
-            "label": "Flash & Monitor",
+            "label": "Backend: Flash & Monitor",
             "group": {
                 "kind": "test",
                 "isDefault": true
@@ -209,7 +223,7 @@
                 "reveal": "always"
             },
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": {
                 "owner": "cpp",
@@ -225,26 +239,26 @@
             }
         },
         {
-            "label": "Clean Project",
+            "label": "Backend: Clean Project",
             "command": "${env:IDF_PATH}/tools/idf.py",
             "type": "shell",
             "args": [
                 "clean"
             ],
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": []
         },
         {
-            "label": "Full-Clean Project",
+            "label": "Backend: Full-Clean Project",
             "command": "${env:IDF_PATH}/tools/idf.py",
             "type": "shell",
             "args": [
                 "fullclean"
             ],
             "options": {
-                "cwd": "${workspaceFolder}/firmware"
+                "cwd": "${workspaceFolder}/source/firmware/backend"
             },
             "problemMatcher": []
         }

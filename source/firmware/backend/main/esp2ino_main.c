@@ -5,21 +5,11 @@
 #include "../static/index.html.gz.h"
 
 /**
- * Structs
- * */
-typedef struct flash_conf
-{
-    char *url;
-    httpd_req_t *req;
-} flash_conf;
-flash_conf fc;
-
-/**
  * Flags & Options
  * */
 
-/** DEVELOPMENT FLAGS **/   /** These must all be false before publishing release! **/
-#define DEV_FAKE_WRITE true // Skips actual OTA task. Defaults to success.
+/** DEVELOPMENT FLAGS **/    /** These must all be false before publishing release! **/
+#define DEV_FAKE_WRITE false // Skips actual OTA task. Defaults to success.
 
 /** FEATURE TOGGLES **/
 #define FEAT_DEBUG_LOG_TO_WEBUI false // See note before webui_debugPub definition, below.
@@ -65,12 +55,10 @@ flash_conf fc;
 uint32_t flash_data;
 uint8_t *flash_dataAddr = (uint8_t *)&flash_data;
 
-static EventGroupHandle_t flash_eventGroup;
-static const int FLASH_SUCCESS_BIT = BIT2;
-static const int FLASH_FAIL_BIT = BIT3;
-
 bool flash_erasedBootloader = false;
 bool flash_erasedFactoryApp = false;
+
+char user_url_buf[200];
 
 /** System Attributes **/
 static unsigned int sys_realFlashSize;
@@ -83,7 +71,9 @@ const esp_partition_t *sys_partConfigured;
 const esp_partition_t *sys_partIdle;
 
 /** Logging **/
+#if FEAT_DEBUG_LOG_TO_WEBUI
 static putchar_like_t old_logger = NULL;
+#endif
 char debug_logBuffer[LOG_BUF_MAX_LINE_SIZE];
 char flashTsk_logBuffer[SPI_FLASH_SEC_SIZE] __attribute__((aligned(4))) = {0};
 int webMsgQueueSize = 0;
@@ -511,7 +501,7 @@ static esp_err_t webui_msgPub(httpd_req_t *req, char *step, char *state, char *m
 
     ESP_LOGD(TAG, jsonBuffer);
 
-    httpd_resp_send_chunk(req, jsonBuffer, strlen(jsonBuffer));
+    httpd_resp_send_chunk(req, jsonBuffer, -1);
 
     webMsgQueueSize -= 1;
 
@@ -530,7 +520,7 @@ static esp_err_t webui_msgPub(httpd_req_t *req, char *step, char *state, char *m
   webui_msgPub messages have been sent. This triggers FreeRTOS' watchdog and, therefore, a system
   crash. The user will experience the webui's flash status tracker get stuck.
 */
-#ifdef FEAT_DEBUG_LOG_TO_WEBUI
+#if FEAT_DEBUG_LOG_TO_WEBUI
 int webui_debugPub(int chr)
 {
     char *jsonBuffer;
@@ -674,18 +664,14 @@ esp_err_t handleFlash(httpd_req_t *req)
     memset(httpRespBuffer, 0, sizeof httpRespBuffer);
     char *buf;
     size_t buf_len;
-    EventBits_t uxBits;
-    flash_eventGroup = xEventGroupCreate();
 
     httpd_resp_set_type(req, HTTPD_TYPE_JSON);
     httpd_resp_set_status(req, HTTPD_200);
 
-#ifdef FEAT_DEBUG_LOG_TO_WEBUI
+#if FEAT_DEBUG_LOG_TO_WEBUI
     // Make http request available to webui_debugPub.
     flash_httpdReq = req;
 #endif
-
-    char user_url_buf[200];
 
     char client_ipstr[40];
     req_get_client_ip(req, client_ipstr);
@@ -707,7 +693,7 @@ esp_err_t handleFlash(httpd_req_t *req)
         free(buf);
     }
 
-#ifdef FEAT_DEBUG_LOG_TO_WEBUI
+#if FEAT_DEBUG_LOG_TO_WEBUI
     /** Enable Log to Web **/
     old_logger = esp_log_set_putchar(&webui_debugPub);
 #endif
@@ -718,9 +704,11 @@ esp_err_t handleFlash(httpd_req_t *req)
 
         httpd_resp_send(req, httpRespBuffer, strlen(httpRespBuffer));
 
+#if FEAT_DEBUG_LOG_TO_WEBUI
         /** Disable Log to Web **/
         esp_log_set_putchar(old_logger);
         esp_log_level_set(TAG, ESP_LOG_INFO);
+#endif
 
         /** Close HTTP Response **/
         httpd_resp_set_status(req, HTTPD_400);
@@ -731,79 +719,56 @@ esp_err_t handleFlash(httpd_req_t *req)
 
     ESP_LOGI(TAG, "Using URL: %s", user_url_buf);
 
-    TaskHandle_t xFlashTask = NULL;
-
-    fc.url = user_url_buf;
-    fc.req = req;
-
-    BaseType_t xReturned =
-        xTaskCreate(&flash_tsk, "flash_tsk", 4096, NULL, 5, &xFlashTask);
-    if (xReturned == pdPASS)
+    if (doFlash(req) == ESP_OK)
     {
-        ESP_LOGI(TAG, "Flashing task created.");
-    }
+        sprintf(httpRespBuffer,
+                "Flashed %s successfully, rebooting...\n Sensitive operations occur on first boot and may take up to five minutes to complete.",
+                user_url_buf);
+        ESP_LOGI(TAG, httpRespBuffer);
 
-    while (1)
-    {
-        uxBits = xEventGroupWaitBits(flash_eventGroup,
-                                     FLASH_SUCCESS_BIT | FLASH_FAIL_BIT, true,
-                                     false, portMAX_DELAY);
+        /** Report to Web UI [DONE] **/
+        webui_msgPub(req, "6", FLASH_STATE_DONE, "Sensitive operations occur on first boot and may take up to five minutes to complete. It is absolutely critical that you do not cut power to the device during this time.");
 
-        if (uxBits & FLASH_SUCCESS_BIT)
+        for (int i = 4; i >= 0; i--)
         {
-            sprintf(httpRespBuffer,
-                    "Flashed %s successfully, rebooting...\n Sensitive operations occur on first boot and may take up to five minutes to complete.",
-                    user_url_buf);
-            ESP_LOGI(TAG, httpRespBuffer);
+            ESP_LOGI(TAG, "Restarting in %d seconds...", i);
 
-            /** Report to Web UI [DONE] **/
-            webui_msgPub(fc.req, "6", FLASH_STATE_DONE, "Sensitive operations occur on first boot and may take up to five minutes to complete. It is absolutely critical that you do not cut power to the device during this time.");
-
-            /** Disable Log to Web **/
-            esp_log_set_putchar(old_logger);
-            esp_log_level_set(TAG, ESP_LOG_INFO);
-
-            /** Close HTTP Response **/
-            httpd_resp_send_chunk(req, NULL, 0);
-
-            for (int i = 4; i >= 0; i--)
-            {
-                ESP_LOGI(TAG, "Restarting in %d seconds...", i);
-
-                vTaskDelay(1000 / portTICK_PERIOD_MS);
-            }
-
-            while (webMsgQueueSize > 0)
-            {
-                /* Wait for all webui messages to be published. */
-                ESP_LOGI(TAG, "Messages in Web UI Queue: %d", webMsgQueueSize);
-            }
-
-            ESP_LOGI(TAG, "Restarting....");
-
-            esp_restart();
-
-            return ESP_OK;
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
 
-        if (uxBits & FLASH_FAIL_BIT)
+        while (webMsgQueueSize > 0)
         {
-            sprintf(httpRespBuffer, "Flashing %s failed.", user_url_buf);
-            ESP_LOGE(TAG, httpRespBuffer);
-            xEventGroupClearBits(flash_eventGroup, FLASH_FAIL_BIT);
-
-            /** Disable Log to Web **/
-            esp_log_set_putchar(old_logger);
-            esp_log_level_set(TAG, ESP_LOG_INFO);
-
-            /** Close HTTP Response **/
-            httpd_resp_send_chunk(req, NULL, 0);
-
-            return ESP_OK;
+            /* Wait for all webui messages to be published. */
+            ESP_LOGI(TAG, "Messages in Web UI Queue: %d", webMsgQueueSize);
         }
-    }
 
-    return ESP_FAIL;
+        ESP_LOGI(TAG, "Restarting....");
+
+#if FEAT_DEBUG_LOG_TO_WEBUI
+        /** Disable Log to Web **/
+        esp_log_set_putchar(old_logger);
+#endif
+
+        /** Close HTTP Response **/
+        httpd_resp_send_chunk(req, NULL, 0);
+
+        esp_restart();
+    }
+    else
+    {
+        sprintf(httpRespBuffer, "Flashing %s failed.", user_url_buf);
+        ESP_LOGE(TAG, httpRespBuffer);
+
+#if FEAT_DEBUG_LOG_TO_WEBUI
+        /** Disable Log to Web **/
+        esp_log_set_putchar(old_logger);
+#endif
+
+        /** Close HTTP Response **/
+        httpd_resp_send_chunk(req, NULL, 0);
+
+        return ESP_OK;
+    }
 }
 
 esp_err_t handleUndo(httpd_req_t *req)
@@ -956,12 +921,12 @@ esp_err_t handleInfo(httpd_req_t *req)
     cJSON_AddItemToArray(elements, element);
 
     sprintf(httpRespBuffer, "%s @ 0x%06x", sys_partIdle->label, sys_partIdle->address);
-    element = createGenStatusElement("sys_partIdle", httpRespBuffer);
+    element = createGenStatusElement("part_idle", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
     sprintf(httpRespBuffer, "%s",
             (flash_erasedFactoryApp ? "Third party app" : "Factory app"));
-    element = createGenStatusElement("sys_partIdle_content", httpRespBuffer);
+    element = createGenStatusElement("part_idle_content", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
     sprintf(httpRespBuffer, "%s",
@@ -993,6 +958,7 @@ httpd_handle_t start_webserver(void)
 {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.stack_size = 6144;
 
     // Start the httpd server
     // httpd server is FreeRTOS Task with default priority of idle+5
@@ -1031,13 +997,12 @@ httpd_handle_t start_webserver(void)
  * This task is started by the http server's handleFlash (/flash) handler.
  *
  * */
-static void flash_tsk(void *parm)
+static esp_err_t doFlash(httpd_req_t *req)
 {
     static const char *TAG = "ota_task";
     esp_err_t ret;
-    esp_err_t tmRet;
 
-    // const char *url = fc.url;
+    // const char *url = user_url_buf;
 
     /***
    * INITIALIZE / PRE-CHECK
@@ -1076,8 +1041,7 @@ static void flash_tsk(void *parm)
                 sys_partRunning->label, sys_partRunning->address, sys_partIdle->label,
                 sys_partIdle->address);
 
-        xEventGroupSetBits(flash_eventGroup, FLASH_FAIL_BIT);
-        vTaskDelete(NULL);
+        return ESP_FAIL;
     }
 
     /***
@@ -1087,9 +1051,9 @@ static void flash_tsk(void *parm)
     ESP_LOGI(TAG, "BEGIN: Downloading and flashing third party bin.");
 
     /** Report to Web UI [Task 1 of 5] **/
-    webui_msgPub(fc.req, "1", FLASH_STATE_RUNNING, "");
+    webui_msgPub(req, "1", FLASH_STATE_RUNNING, "");
 
-    esp_http_client_config_t config = {.url = fc.url,
+    esp_http_client_config_t config = {.url = user_url_buf,
                                        .event_handler = _http_event_handler};
 
     int attempt = 0;
@@ -1105,7 +1069,7 @@ static void flash_tsk(void *parm)
 
             /** Report to Web UI [Task 1 of 5] **/
             sprintf(flashTsk_logBuffer, "Failed to download firmware. Trying again. Attempt %d of 5.", attempt + 1);
-            webui_msgPub(fc.req, "1", FLASH_STATE_RETRY, flashTsk_logBuffer);
+            webui_msgPub(req, "1", FLASH_STATE_RETRY, flashTsk_logBuffer);
 
             printf("Retrying in:\n");
             for (int i = 4; i >= 0; --i)
@@ -1121,22 +1085,21 @@ static void flash_tsk(void *parm)
             flash_erasedFactoryApp = true;
 
             /** Report to Web UI [Task 1 of 5] **/
-            webui_msgPub(fc.req, "1", FLASH_STATE_SUCCESS, "");
+            webui_msgPub(req, "1", FLASH_STATE_SUCCESS, "");
 
             break;
         }
         else
         {
             /** Report to Web UI [Task 1 of 5] **/
-            webui_msgPub(fc.req, "1", FLASH_STATE_FAIL, "Failed while installing firmware. This should be recoverable. Try again after verifying that your "
-                                                        "internet connection is working and that your firmware URL is correct. "
-                                                        "<br><br>⚠️ DO NOT REVERT TO FACTORY FIRMWARE! ⚠️<br><br>"
-                                                        "Factory firmware may have been overwritten during this flashing attempt. "
-                                                        "Reverting to this overwritten firmware will brick your device.");
+            webui_msgPub(req, "1", FLASH_STATE_FAIL, "Failed while installing firmware. This should be recoverable. Try again after verifying that your "
+                                                     "internet connection is working and that your firmware URL is correct. "
+                                                     "<br><br>⚠️ DO NOT REVERT TO FACTORY FIRMWARE! ⚠️<br><br>"
+                                                     "Factory firmware may have been overwritten during this flashing attempt. "
+                                                     "Reverting to this overwritten firmware will brick your device.");
 
             flash_erasedFactoryApp = true;
-            xEventGroupSetBits(flash_eventGroup, FLASH_FAIL_BIT);
-            vTaskDelete(NULL);
+            return ESP_FAIL;
         }
 
         ++attempt;
@@ -1153,31 +1116,28 @@ static void flash_tsk(void *parm)
     ESP_LOGI(TAG, "BEGIN: Erasing bootloader.");
 
     /** Report to Web UI [Task 2 of 5] **/
-    webui_msgPub(fc.req, "2", FLASH_STATE_RUNNING, "");
+    webui_msgPub(req, "2", FLASH_STATE_RUNNING, "");
 
     // Failing here will PROBABLY brick the device.
-    taskENTER_CRITICAL();
     ret = spi_flash_erase_range(0x0, 0x10000);
-    taskEXIT_CRITICAL();
 
     if (ret != ESP_OK)
     {
         flash_erasedBootloader = true;
 
         /** Report to Web UI [Task 2 of 5] **/
-        webui_msgPub(fc.req, "2", FLASH_STATE_FAIL, "Failed while erasing bootloader. Your device is probably bricked 😬. Sorry!");
+        webui_msgPub(req, "2", FLASH_STATE_FAIL, "Failed while erasing bootloader. Your device is probably bricked 😬. Sorry!");
 
-        ESP_LOGD(TAG, (char *)tmRet);
+        // ESP_LOGD(TAG, (char *)tmRet);
         /** END Report to Web UI **/
 
-        xEventGroupSetBits(flash_eventGroup, FLASH_FAIL_BIT);
-        vTaskDelete(NULL);
+        return ESP_FAIL;
     }
 
     flash_erasedBootloader = true;
 
     /** Report to Web UI [Task 2 of 5] **/
-    webui_msgPub(fc.req, "2", FLASH_STATE_SUCCESS, "");
+    webui_msgPub(req, "2", FLASH_STATE_SUCCESS, "");
 
     ESP_LOGI(TAG, "DONE: Erasing bootloader.");
 
@@ -1188,7 +1148,7 @@ static void flash_tsk(void *parm)
     ESP_LOGI(TAG, "BEGIN: Writing bootloader.");
 
     /** Report to Web UI [Task 3 of 5] **/
-    webui_msgPub(fc.req, "3", FLASH_STATE_RUNNING, "");
+    webui_msgPub(req, "3", FLASH_STATE_RUNNING, "");
 
     unsigned char *eboot_bin_ptr = eboot_bin;
 
@@ -1196,28 +1156,26 @@ static void flash_tsk(void *parm)
     eboot_bin_ptr[2] = flash_dataAddr[2];
     eboot_bin_ptr[3] = flash_dataAddr[3];
 
-    taskENTER_CRITICAL();
     ret = spi_flash_write(0x0, (uint32_t *)eboot_bin_ptr, eboot_bin_len);
-    taskEXIT_CRITICAL();
+
     if (ret != ESP_OK)
     {
 
         /** Report to Web UI [Task 3 of 5] **/
-        webui_msgPub(fc.req, "3", FLASH_STATE_FAIL, "Failed while writing Arduino bootloader. Your device is probably bricked 😬. Sorry!");
+        webui_msgPub(req, "3", FLASH_STATE_FAIL, "Failed while writing Arduino bootloader. Your device is probably bricked 😬. Sorry!");
 
-        xEventGroupSetBits(flash_eventGroup, FLASH_FAIL_BIT);
-        vTaskDelete(NULL);
+        return ESP_FAIL;
     }
 
     /** Report to Web UI [Task 3 of 5] **/
-    webui_msgPub(fc.req, "3", FLASH_STATE_SUCCESS, "");
+    webui_msgPub(req, "3", FLASH_STATE_SUCCESS, "");
 
     ESP_LOGI(TAG, "DONE: Writing bootloader.");
 
     ESP_LOGI(TAG, "BEGIN: Setting eboot commands.");
 
     /** Report to Web UI [Task 4 of 5] **/
-    webui_msgPub(fc.req, "4", FLASH_STATE_RUNNING, "");
+    webui_msgPub(req, "4", FLASH_STATE_RUNNING, "");
 
     // Command the bootloader to copy the firmware to the correct place on next
     // boot
@@ -1227,9 +1185,7 @@ static void flash_tsk(void *parm)
     ebcmd.args[1] = 0x0;
     ebcmd.args[2] = sys_partIdle->size;
 
-    taskENTER_CRITICAL();
     eboot_command_write(&ebcmd);
-    taskEXIT_CRITICAL();
 
     struct eboot_command ebcmd_read;
     eboot_command_read(&ebcmd_read);
@@ -1241,7 +1197,7 @@ static void flash_tsk(void *parm)
     ESP_LOGI(TAG, "DONE: Setting eboot commands.");
 
     /** Report to Web UI [Task4  of 5] **/
-    webui_msgPub(fc.req, "4", FLASH_STATE_SUCCESS, "");
+    webui_msgPub(req, "4", FLASH_STATE_SUCCESS, "");
 
     /***
     * ERASE SYSTEM PARAMS FROM FLASH
@@ -1254,27 +1210,23 @@ static void flash_tsk(void *parm)
     * */
 
     /** Report to Web UI [Task 5 of 5] **/
-    webui_msgPub(fc.req, "5", FLASH_STATE_RUNNING, "");
+    webui_msgPub(req, "5", FLASH_STATE_RUNNING, "");
 
     ESP_LOGI(TAG, "BEGIN: Erasing RF calibration data.");
 
-    taskENTER_CRITICAL();
     for (uint16_t i = 244; i < 256; i++)
     {
         ESP_LOGI(TAG, "Erasing sector %d", i);
         if (spi_flash_erase_sector(i) != ESP_OK)
             ESP_LOGW(TAG, "Failed to erase sector.");
     }
-    taskEXIT_CRITICAL();
 
     ESP_LOGI(TAG, "DONE: Erasing RF calibration data.");
 
     /** Report to Web UI [Task 5 of 5] **/
-    webui_msgPub(fc.req, "5", FLASH_STATE_SUCCESS, "");
+    webui_msgPub(req, "5", FLASH_STATE_SUCCESS, "");
 
-    xEventGroupSetBits(flash_eventGroup, FLASH_SUCCESS_BIT);
-
-    vTaskDelete(NULL);
+    return ESP_OK;
 }
 
 /**

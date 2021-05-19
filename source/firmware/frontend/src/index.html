@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>esp2ino</title>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="./normalize.min.css" inline />
+        <link rel="stylesheet" href="./milligram.min.css" inline />
+        <link rel="stylesheet" href="./esp2ino.css" inline />
+    </head>
+
+    <body>
+        <div class="center title">
+            <h1>esp2ino</h1>
+        </div>
+        <!-- Steps Container: START -->
+        <div class="container">
+            <header class="card-title">
+                <h3 class="center">Replace Firmware</h3>
+            </header>
+            <div class="card-body">
+                <!-- Step 1: START -->
+                <div class="row">
+                    <div class="column">
+                        <label>Step 1</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <h4>Backup Factory Firmware</h4>
+                    </div>
+                    <div class="column center">
+                        <button
+                            id="backup"
+                            class="button-action button-blue"
+                            type="button"
+                        >
+                            Download Backup
+                        </button>
+                        <p class="narration">
+                            <a href="#why-download">Why download a backup?</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 1: END -->
+                <hr />
+                <!-- Step 2: START -->
+
+                <div class="row">
+                    <div class="column">
+                        <label>Step 2</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <h4>Select Replacement Firmware</h4>
+                    </div>
+                    <div class="column">
+                        <select id="fw_select">
+                            <option value="tasmota" selected>Tasmota</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                        <input
+                            type="text"
+                            id="fw_url"
+                            name="fw_url"
+                            placeholder="Firmware URL (.bin)"
+                        />
+                    </div>
+                </div>
+
+                <!-- Step 2: END -->
+                <hr />
+                <!-- Step 3: START -->
+
+                <div class="row">
+                    <div class="column">
+                        <label>Step 3</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <h4>Install Replacement Firmware</h4>
+                    </div>
+                    <div class="column">
+                        <button
+                            id="flashBtn"
+                            class="button-blue button-action"
+                            type="button"
+                        >
+                            Install
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: END -->
+            </div>
+        </div>
+        <!-- Steps Container: END -->
+
+        <hr class="major" />
+
+        <!-- Cold Feet: START -->
+        <div class="container center">
+            <h3>Changed your mind?</h3>
+            <button
+                id="undoBtn"
+                class="button-blue button-outline"
+                type="button"
+            >
+                Revert to Factory Firmware
+            </button>
+        </div>
+        <!-- Cold Feet: END -->
+
+        <hr id="flash-status-hr" class="major" hidden />
+
+        <!-- Flash Status Table: START -->
+        <div id="flash-status-container" class="container center" hidden>
+            <h3>Flash Status</h3>
+            <table id="flash-status"></table>
+        </div>
+        <!-- Flash Status Table: END -->
+
+        <hr class="major" />
+
+        <!-- Debug Information: START -->
+        <div class="container center">
+            <button
+                id="show-device-btn"
+                class="accordion button-blue button-outline"
+            >
+                Show Device Info
+            </button>
+            <div id="debug-panel" class="panel">
+                <hr class="progress" />
+                <!-- Device Status: START -->
+                <div id="progress-wrapper" class="progress container center">
+                    <h3 class="progress">Debug Output</h3>
+                    <div id="progress" class="progress" ready>
+                        <pre>Initializing...</pre>
+                    </div>
+                </div>
+                <!-- Device Status: END -->
+
+                <hr />
+
+                <h3>Device Information</h3>
+                <table>
+                    <tr>
+                        <td>
+                            <strong>Device MAC:</strong>
+                        </td>
+                        <td id="mac"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Wi-Fi Mode:</strong>
+                        </td>
+                        <td id="wifi_mode"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Your IP:</strong>
+                        </td>
+                        <td id="client_ip"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>FlashMode:</strong>
+                        </td>
+                        <td id="flash_mode"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Configured Boot Partition:</strong>
+                        </td>
+                        <td id="part_boot_conf"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Actual Boot Partition:</strong>
+                        </td>
+                        <td id="part_boot_act"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Idle Partition:</strong>
+                        </td>
+                        <td id="part_idle"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Idle Partition Content:</strong>
+                        </td>
+                        <td id="part_idle_content"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Bootloader:</strong>
+                        </td>
+                        <td id="bootloader"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <!-- Debug Information: END -->
+
+        <!-- Why Backup?: Start -->
+        <div id="why-download" class="modal-window">
+            <div>
+                <a href="#" title="Close" class="modal-close">Close</a>
+                <h1>Why download a backup?</h1>
+                <p>
+                    You'll need a firmware backup to restore this device's
+                    factory firmware after converting with esp2ino. It's often
+                    difficult to get firmware for IoT devices and, due to
+                    copyright concerns, third parties (like esp2ino) are
+                    reluctant to host these files for you.
+                </p>
+                <p>
+                    <strong
+                        >⚠️ esp2ino does not currently support restoring from
+                        backups!</strong
+                    >
+                    It may one day. You should keep this backup just in case.
+                </p>
+            </div>
+        </div>
+        <!-- Why Backup?: End -->
+    </body>
+    <script src="ansi_up.min.js" inline></script>
+    <script src="confetti.min.js" inline></script>
+    <script src="esp2ino.js" inline></script>
+</html>
