@@ -135,11 +135,15 @@
                 Show Device Info
             </button>
             <div id="debug-panel" class="panel">
-                <hr class="progress" />
+                <hr class="debug-log" hidden />
                 <!-- Device Status: START -->
-                <div id="progress-wrapper" class="progress container center">
-                    <h3 class="progress">Debug Output</h3>
-                    <div id="progress" class="progress" ready>
+                <div
+                    id="debug-log-wrapper"
+                    class="debug-log container center"
+                    hidden
+                >
+                    <h3 class="debug-log" hidden>Debug Output</h3>
+                    <div id="debug-log" class="debug-log" ready hidden>
                         <pre>Initializing...</pre>
                     </div>
                 </div>
@@ -148,7 +152,7 @@
                 <hr />
 
                 <h3>Device Information</h3>
-                <table>
+                <table id="device-info">
                     <tr>
                         <td>
                             <strong>Device MAC:</strong>

@@ -23,16 +23,26 @@ for (i = 0; i < acc.length; i++) {
  * Populate page data
  */
 
-window.onload = function () {
+window.onload = populateDeviceInfo();
+
+function populateDeviceInfo() {
     fetch("info")
         .then((response) => response.json())
         .then((jsonResponse) => {
             jsonResponse.forEach((entry) => {
-                document.getElementById(entry.id).innerHTML = entry.innerHTML;
+                const element = document.getElementById(entry.id);
+                const priorValue = element.innerHTML;
+                element.innerHTML = entry.innerHTML;
+                if (
+                    !["", entry.innerHTML].includes(priorValue) &&
+                    entry.id != "debug-log"
+                ) {
+                    element.setAttribute("class", "changed");
+                }
             });
         })
         .catch(console.error);
-};
+}
 
 /**
  * Download Backup
@@ -87,6 +97,9 @@ document.getElementById("flashBtn").onclick = function () {
 
 function onChunkedResponseComplete(result) {
     console.log("Response closed!", result);
+    // If anything fails, this will get us updated device state info
+    // I.e.: partition content, etc.
+    populateDeviceInfo();
 }
 
 function onChunkedResponseError(err) {
@@ -131,20 +144,21 @@ function appendFlashStatus(jsonObj) {
 }
 
 function appendDebug(message) {
+    enableDebugLog();
     const ansiFormatted = ansiUp.ansi_to_html(message);
     const entry = document.createElement("pre");
     entry.innerHTML = ansiFormatted;
-    const progress = document.getElementById("progress");
+    const debugLog = document.getElementById("debug-log");
 
     // ansiNode = document.createRange().createContextualFragment(ansiFormatted);
 
-    if (progress.hasAttribute("ready")) {
-        progress.removeAttribute("ready");
-        progress.innerHTML = "";
+    if (debugLog.hasAttribute("ready")) {
+        debugLog.removeAttribute("ready");
+        debugLog.innerHTML = "";
     }
 
-    progress.appendChild(entry);
-    // progress.scrollTo(0, progress.scrollHeight)
+    debugLog.appendChild(entry);
+    debugLog.scrollTo(0, debugLog.scrollHeight);
 }
 
 function processChunkedResponse(response) {
@@ -250,11 +264,11 @@ function buildFlashTaskTable() {
     const failNodeInnerHtml = '<div class="fail emoji">❌</div>';
     const warnNodeInnerHtml = '<div class="warn emoji">⚠️</div>';
     const doneNodeInnerHtml = '<div class="done emoji">🎉</div>';
-    // const logButtonInnerHtml = `
-    //   <button class="button button-clear log-button" onClick="viewLog()" type="button">
-    //     View Log
-    //   </button>
-    //   `
+    const logButtonInnerHtml = `
+      <button class="button button-clear log-button debug-log" onClick="viewLog()" type="button" hidden>
+        View Log
+      </button>
+      `;
 
     flashTasks.forEach((task, index) => {
         const taskRow = document.createElement("tr");
@@ -303,7 +317,7 @@ function buildFlashTaskTable() {
         const taskLogBtn = document.createElement("td");
         taskLogBtn.setAttribute("id", "step-" + (index + 1) + "-logBtn");
         taskLogBtn.setAttribute("class", "logBtn");
-        // taskLogBtn.innerHTML = logButtonInnerHtml
+        taskLogBtn.innerHTML = logButtonInnerHtml;
 
         /* Append Cells to Row */
         taskRow.appendChild(taskIcon);
@@ -317,11 +331,29 @@ function buildFlashTaskTable() {
     return true;
 }
 
-// function viewLog () {
-//   const debugPanelDisplay = window.getComputedStyle(document.getElementById('debug-panel'), null).display
-//   if (debugPanelDisplay === 'none') {
-//     document.getElementById('show-device-btn').click()
-//   } else {
-//     document.getElementById('debug-panel').scrollIntoView()
-//   }
-// }
+/**
+ * Debug log is a work in progress on the backend. Frontend code is complete, but all
+ * debug-log elements are turned off by default. If we receive a debug log message from the
+ * backend, we'll turn on the debug log feature on the frontend on-the-fly.
+ */
+function enableDebugLog() {
+    if (!document.body.getAttribute("debug-log-enabled")) {
+        document.body.setAttribute("debug-log-enabled", "");
+        debugElements = document.getElementsByClassName("debug-log");
+        [].forEach.call(debugElements, function (element) {
+            element.removeAttribute("hidden");
+        });
+    }
+}
+
+function viewLog() {
+    const debugPanelDisplay = window.getComputedStyle(
+        document.getElementById("debug-panel"),
+        null
+    ).display;
+    if (debugPanelDisplay === "none") {
+        document.getElementById("show-device-btn").click();
+    } else {
+        document.getElementById("debug-panel").scrollIntoView();
+    }
+}

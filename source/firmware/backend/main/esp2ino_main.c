@@ -8,8 +8,9 @@
  * Flags & Options
  * */
 
-/** DEVELOPMENT FLAGS **/    /** These must all be false before publishing release! **/
-#define DEV_FAKE_WRITE false // Skips actual OTA task. Defaults to success.
+/** DEVELOPMENT FLAGS **/   /** These must all be false before publishing release! **/
+#define DEV_FAKE_WRITE true // Skips actual OTA task. Defaults to success.
+#define DEV_FORCE_FAIL true // Forces a failure on bootloader erase step.
 
 /** FEATURE TOGGLES **/
 #define FEAT_DEBUG_LOG_TO_WEBUI false // See note before webui_debugPub definition, below.
@@ -69,6 +70,7 @@ char sys_ip[32];
 const esp_partition_t *sys_partRunning;
 const esp_partition_t *sys_partConfigured;
 const esp_partition_t *sys_partIdle;
+bool sysInfoTransmitted = false;
 
 /** Logging **/
 #if FEAT_DEBUG_LOG_TO_WEBUI
@@ -83,6 +85,7 @@ char httpRespBuffer[SPI_FLASH_SEC_SIZE * 4] __attribute__((aligned(4))) = {0};
 static httpd_handle_t server = NULL;
 httpd_req_t *flash_httpdReq;
 wifi_config_t saved_wifi_config;
+char *wifiMode = "Unknown";
 
 /** Stored / Sta WiFi Mode **/
 static EventGroupHandle_t staWifi_EventGroup;
@@ -168,6 +171,8 @@ static bool staWifi_init(void)
 {
     static const char *TAG = "staWifi_init";
 
+    wifiMode = "Connected to Wi-Fi via Saved Credentials";
+
     uint8_t empty_bssid[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
     staWifi_EventGroup = xEventGroupCreate();
@@ -244,6 +249,8 @@ static bool staWifi_init(void)
 static void wifiFallback_init(xTimerHandle pxTimer)
 {
     static const char *TAG = "wifiFallback_init";
+
+    wifiMode = "Fallback Mode";
 
     ESP_LOGI(TAG, "Falling back.");
 
@@ -323,6 +330,8 @@ static void wifiFallback_eventHandler(void *arg, esp_event_base_t event_base,
 void smartConfig_init(void)
 {
     static const char *TAG = "smartConfig_wifi";
+
+    wifiMode = "Connected to Wi-Fi via ESP-Touch";
 
     // Fallback to AP mode if no easy connect activity/success within 2 min.
     if (smartConfig_started == false)
@@ -618,6 +627,9 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 esp_err_t handleRoot(httpd_req_t *req)
 {
+    // Reloading the entire page, so sysInfo need to re-initialize everything.
+    sysInfoTransmitted = false;
+
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     httpd_resp_send(req, index_html_gz, index_html_gz_len);
 
@@ -811,22 +823,6 @@ esp_err_t handleInfo(httpd_req_t *req)
 {
     memset(httpRespBuffer, 0, sizeof httpRespBuffer);
 
-    wifi_mode_t ret_wifi_mode;
-    char *ret_wifi_mode_human;
-    ESP_ERROR_CHECK(esp_wifi_get_mode(&ret_wifi_mode));
-
-    switch (ret_wifi_mode)
-    {
-    case WIFI_MODE_AP:
-        ret_wifi_mode_human = "Acting as Wi-Fi AP (Fallback)";
-        break;
-    case WIFI_MODE_STA:
-        ret_wifi_mode_human = "Conneted to Wi-Fi AP (Smart Config)";
-        break;
-    default:
-        ret_wifi_mode_human = "Other";
-    }
-
     char client_ipstr[40];
     req_get_client_ip(req, client_ipstr);
 
@@ -899,7 +895,7 @@ esp_err_t handleInfo(httpd_req_t *req)
     element = createGenStatusElement("mac", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
-    sprintf(httpRespBuffer, "%s", ret_wifi_mode_human);
+    sprintf(httpRespBuffer, "%s", wifiMode);
     element = createGenStatusElement("wifi_mode", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
@@ -925,18 +921,27 @@ esp_err_t handleInfo(httpd_req_t *req)
     cJSON_AddItemToArray(elements, element);
 
     sprintf(httpRespBuffer, "%s",
-            (flash_erasedFactoryApp ? "Third party app" : "Factory app"));
+            (flash_erasedFactoryApp ? "Third Party" : "Factory"));
     element = createGenStatusElement("part_idle_content", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
     sprintf(httpRespBuffer, "%s",
-            (flash_erasedBootloader ? "Arduino eboot (third party)"
-                                    : "Espressif (factory)"));
+            (flash_erasedBootloader ? "Arduino eboot (Third Party)"
+                                    : "Espressif (Factory)"));
     element = createGenStatusElement("bootloader", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
-    element = createGenStatusElement("progress", "<pre>Ready to flash...</pre>");
-    cJSON_AddItemToArray(elements, element);
+    /** 
+     * This URI is called on the first load of the index page, then again
+     * if a flashing step fails. We only want to initialize the debug log
+     * on the index page's initial load.
+     * */
+    if (!sysInfoTransmitted)
+    {
+        element = createGenStatusElement("debug-log", "<pre>Ready to flash...</pre>");
+        cJSON_AddItemToArray(elements, element);
+        sysInfoTransmitted = true;
+    }
 
     jsonBuffer = cJSON_Print(elements);
 
@@ -1061,7 +1066,11 @@ static esp_err_t doFlash(httpd_req_t *req)
     while (attempt <= 4)
     {
 
-        ret = DEV_FAKE_WRITE ? ESP_OK : esp_https_ota(&config);
+#if DEV_FAKE_WRITE
+        ret = ESP_OK;
+#else
+        ret = esp_https_ota(&config);
+#endif
 
         if (ret == ESP_ERR_HTTP_CONNECT && attempt < 4)
         {
@@ -1121,6 +1130,12 @@ static esp_err_t doFlash(httpd_req_t *req)
     // Failing here will PROBABLY brick the device.
     ret = spi_flash_erase_range(0x0, 0x10000);
 
+#if DEV_FORCE_FAIL
+    ret = ESP_FAIL;
+#endif
+
+    flash_erasedBootloader = true;
+
     if (ret != ESP_OK)
     {
         flash_erasedBootloader = true;
@@ -1133,8 +1148,6 @@ static esp_err_t doFlash(httpd_req_t *req)
 
         return ESP_FAIL;
     }
-
-    flash_erasedBootloader = true;
 
     /** Report to Web UI [Task 2 of 5] **/
     webui_msgPub(req, "2", FLASH_STATE_SUCCESS, "");
