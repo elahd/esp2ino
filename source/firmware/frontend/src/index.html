@@ -8,11 +8,18 @@
         <link rel="stylesheet" href="./normalize.min.css" inline />
         <link rel="stylesheet" href="./milligram.min.css" inline />
         <link rel="stylesheet" href="./esp2ino.css" inline />
+        <!-- shortcut::favicon.ico -->
     </head>
 
     <body>
-        <div class="center title">
-            <h1>esp2ino</h1>
+        <div id="top-bar" class="center">
+            <div class="container">
+                <div id="logo-container">
+                    <img id="logo-img" src="./logo.png" alt="esp2ino logo" />
+                    <span id="logo-text">esp2ino</span>
+                </div>
+                <div id="chip"><span>ESP8266</span></div>
+            </div>
         </div>
         <!-- Steps Container: START -->
         <div class="container">
@@ -153,6 +160,12 @@
 
                 <h3>Device Information</h3>
                 <table id="device-info">
+                    <tr>
+                        <td>
+                            <strong>SOC:</strong>
+                        </td>
+                        <td id="soc"></td>
+                    </tr>
                     <tr>
                         <td>
                             <strong>Device MAC:</strong>

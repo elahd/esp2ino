@@ -16,15 +16,44 @@ hr.major {
     border-top-width: 3px;
 }
 
-.title {
+#top-bar {
     padding: 1em;
-    border-bottom: 3px #ddd solid;
+    background-color: #eee;
+    border-bottom: 1px #ddd solid;
     margin-bottom: 2em;
 }
 
-.title h1 {
-    display: inline;
-    font-weight: bold;
+#top-bar .container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#top-bar #logo-container {
+    display: flex;
+    align-items: center;
+}
+
+#top-bar #logo-text {
+    font-weight: light;
+    font-size: 1.5em;
+    color: black;
+}
+
+#top-bar #logo-img {
+    height: 1.5em;
+    vertical-align: text-bottom;
+    margin-right: 0.3em;
+}
+
+#top-bar #chip {
+    display: flex;
+    align-items: center;
+}
+
+#top-bar #chip span {
+    font-size: 0.7em;
+    border: 1px #ddd solid;
+    padding: 0.5em 2em;
 }
 
 #fw_url {
@@ -281,7 +310,9 @@ hr.major {
 }
 
 h3 {
-    font-weight: bold;
+    font-weight: normal;
+    font-size: 2.5em;
+    margin-bottom: 1.25em;
 }
 
 .button-blue {

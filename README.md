@@ -94,7 +94,7 @@ These instructions assume use of Windows, Wyze Plug as target device, familiarit
 4. When prompted, confirm the device selection. WyzeUpdater will spin up a web server to serve wyze_plug_flasher.bin and will tell the Wyze Plug to download the file from your computer.
 5. ⌚ **Wait....** The update takes around two minutes to complete. You'll know it's done when the `wyze_plug_flasher` Wi-Fi network is available:
 
-    ![wyze_plug_flasher Wi-Fi Network](screenshots/wyze_plug_flasher_wifi.png)
+    ![wyze_plug_flasher Wi-Fi Network](resources/screenshots/wyze_plug_flasher_wifi.png)
 
 6. Back in your command prompt window, hit `Ctrl + C` to kill the server and quit WyzeUpdater.
 
@@ -111,12 +111,12 @@ These instructions assume use of Windows, Wyze Plug as target device, familiarit
 
 3. In a web browser, go to [`http://10.0.0.1`](http://10.0.0.1) to access the Wyze Plug Flasher control panel:
 
-    ![wyze_plug_flasher Web Interface](screenshots/wyze_plug_flasher_web.png)
+    ![wyze_plug_flasher Web Interface](resources/screenshots/wyze_plug_flasher_web.png)
 
 4. **Click on the link next to Flash Firmware to download and install Tasmota.** If you're having second thoughts, this is your last opportunity to revert to factory firmware. (Click on the link next to "Revert to Factory Firmware".) **You will not be able to switch back to Wyze's stock firmware once third party firmware has been installed.**
 5. **⌚ Wait again...** This update runs slightly longer than the last one. You'll see a confirmation message in your web browser once the download is complete:
    
-   ![wyze_plug_flasher Download Confirmation](screenshots/wyze_plug_flasher_dl_confirm.png)
+   ![wyze_plug_flasher Download Confirmation](resources/screenshots/wyze_plug_flasher_dl_confirm.png)
 
    After the device downloads Tasmota, it will reboot, rearrange some files, then boot into Tasmota. *It's critical that you don't disturb the device on the initial boot. No button pushing, unplugging, reloading the web page, etc.*
 6. Kill the Python web server by pressing `Ctrl + C` in the command prompt window.
@@ -127,11 +127,11 @@ These instructions assume use of Windows, Wyze Plug as target device, familiarit
 
 1. Connect to the Tasmota Wi-Fi network:
 
-    ![Tasmota Wi-Fi Network](screenshots/wyze_plug_flasher_tasmota_wifi.png)
+    ![Tasmota Wi-Fi Network](resources/screenshots/wyze_plug_flasher_tasmota_wifi.png)
 
 2. In a web browser, go to [`http://192.168.4.1/cs`](http://192.168.4.1/cs):
 
-    ![Tasmota Wi-Fi Network](screenshots/wyze_plug_flasher_tasmota_console.png)
+    ![Tasmota Wi-Fi Network](resources/screenshots/wyze_plug_flasher_tasmota_console.png)
 
 3. Enter `Reset 5` in the command input field and hit `Enter`. The device will reboot.
 4. After the device reboots, unplug it. That is, physically remove it from the electrical outlet for a few seconds.

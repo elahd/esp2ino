@@ -12,6 +12,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.3.1",
     "gulp": "^4.0.2",
+    "gulp-base64-favicon": "^1.0.3",
     "gulp-csslint": "^1.0.1",
     "gulp-eslint": "^6.0.0",
     "gulp-gzip": "^1.4.2",

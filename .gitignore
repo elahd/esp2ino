@@ -3,6 +3,7 @@
 source/firmware/backend/build/
 node_modules
 __pycache__
+venv/
 
 # == GENERIC ==
 # Prerequisites

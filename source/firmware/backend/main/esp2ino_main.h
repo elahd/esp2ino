@@ -24,6 +24,7 @@
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "mdns.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 #include "smartconfig_ack.h"
@@ -36,6 +37,7 @@
 esp_err_t _http_event_handler(esp_http_client_event_t *evt);
 esp_err_t handleRoot(httpd_req_t *req);
 esp_err_t handleFlash(httpd_req_t *req);
+esp_err_t handleFavicon(httpd_req_t *req);
 esp_err_t handleBackup(httpd_req_t *req);
 esp_err_t handleInfo(httpd_req_t *req);
 esp_err_t handleUndo(httpd_req_t *req);
@@ -44,8 +46,9 @@ httpd_handle_t start_webserver(void);
 void app_main();
 uint32_t user_rf_cal_sector_set(void);
 cJSON *createGenStatusElement(char *id, char *innerHTML);
-int req_get_client_ip(httpd_req_t *req, char ipstr[40]);
-void httpSessionPostProcessor(httpd_handle_t hd, int sockfd);
+int req_getClientIp(httpd_req_t *req, char *ipstr);
+static void init_mdns(void);
+void sys_setMacAndHost(int wifiMode);
 
 /** esp2ino_flash.c **/
 static esp_err_t doFlash(httpd_req_t *req);

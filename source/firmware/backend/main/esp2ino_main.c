@@ -13,8 +13,9 @@
 #define DEV_FORCE_FAIL true // Forces a failure on bootloader erase step.
 
 /** FEATURE TOGGLES **/
-#define FEAT_DEBUG_LOG_TO_WEBUI false // See note before webui_debugPub definition, below.
-#define FEAT_MODERN_WIFI_ONLY false   // Only connect to WPA2 networks.
+#define FEAT_DEBUG_LOG_TO_WEBUI false   // See note before webui_debugPub definition, below.
+#define FEAT_MODERN_WIFI_ONLY false     // Only connect to WPA2 networks.
+#define FEAT_MAC_IN_MDNS_HOSTNAME false // Only connect to WPA2 networks.
 
 /**
  * Pre-Processor Directives & Variables
@@ -71,6 +72,12 @@ const esp_partition_t *sys_partRunning;
 const esp_partition_t *sys_partConfigured;
 const esp_partition_t *sys_partIdle;
 bool sysInfoTransmitted = false;
+esp_chip_info_t sys_chipInfo;
+char sys_chipInfoFeatures_s[50];
+char *sys_chipInfoModel_s;
+char sys_chipInfoCores_s[8];
+char sys_chipInfoRev_s[8];
+char sys_hostname[25] = "esp2ino";
 
 /** Logging **/
 #if FEAT_DEBUG_LOG_TO_WEBUI
@@ -268,6 +275,8 @@ static void wifiFallback_init(xTimerHandle pxTimer)
     ESP_ERROR_CHECK(esp_event_handler_unregister(SC_EVENT, ESP_EVENT_ANY_ID,
                                                  &smartConfig_eventHandler));
     ESP_ERROR_CHECK(esp_wifi_disconnect());
+
+    sys_setMacAndHost(WIFI_MODE_AP);
 
     tcpip_adapter_init();
 
@@ -484,6 +493,48 @@ static void smartConfig_eventHandler(void *arg, esp_event_base_t event_base,
     }
 }
 
+/**
+ * 
+ * MDNS FUNCTIONS
+ * 
+ */
+
+static esp_err_t legacy_event_handler(void *ctx, system_event_t *event)
+{
+    mdns_handle_system_event(ctx, event);
+    return ESP_OK;
+}
+
+static void init_mdns(void)
+{
+    char rev[4];
+    char cores[4];
+    sprintf(rev, "%d", sys_chipInfo.revision);
+    sprintf(cores, "%d", sys_chipInfo.cores);
+
+    esp_err_t err = mdns_init();
+    if (err)
+    {
+        printf("MDNS Init failed: %d\n", err);
+        return;
+    }
+
+    ESP_ERROR_CHECK(mdns_instance_name_set("espino_mdns"));
+
+    mdns_hostname_set(sys_hostname);
+    mdns_instance_name_set("esp2ino");
+
+    mdns_service_add(NULL, "_esp2ino", "_tcp", 80, NULL, 0);
+
+    mdns_txt_item_t serviceTxtData[4] = {
+        {"chip_model", sys_chipInfoModel_s},
+        {"chip_rev", rev},
+        {"chip_cores", cores},
+        {"chip_features", sys_chipInfoFeatures_s}};
+
+    mdns_service_txt_set("_esp2ino", "_tcp", serviceTxtData, 4);
+}
+
 /***
  * 
  * LOGGING FUNCTIONS
@@ -627,7 +678,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 esp_err_t handleRoot(httpd_req_t *req)
 {
-    // Reloading the entire page, so sysInfo need to re-initialize everything.
+    // Reloading the entire page. sysInfo needs to re-initialize everything.
     sysInfoTransmitted = false;
 
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
@@ -685,8 +736,8 @@ esp_err_t handleFlash(httpd_req_t *req)
     flash_httpdReq = req;
 #endif
 
-    char client_ipstr[40];
-    req_get_client_ip(req, client_ipstr);
+    char client_ipstr[INET6_ADDRSTRLEN];
+    req_getClientIp(req, client_ipstr);
 
     buf_len = httpd_req_get_url_query_len(req) + 1;
     if (buf_len > 1)
@@ -823,8 +874,8 @@ esp_err_t handleInfo(httpd_req_t *req)
 {
     memset(httpRespBuffer, 0, sizeof httpRespBuffer);
 
-    char client_ipstr[40];
-    req_get_client_ip(req, client_ipstr);
+    char client_ipstr[INET6_ADDRSTRLEN];
+    req_getClientIp(req, client_ipstr);
 
     const char *FlashSize = "";
     switch (flash_dataAddr[3] & 0xF0)
@@ -929,6 +980,10 @@ esp_err_t handleInfo(httpd_req_t *req)
             (flash_erasedBootloader ? "Arduino eboot (Third Party)"
                                     : "Espressif (Factory)"));
     element = createGenStatusElement("bootloader", httpRespBuffer);
+    cJSON_AddItemToArray(elements, element);
+
+    sprintf(httpRespBuffer, "%s Core %s v%s (%s)", sys_chipInfo.cores == 1 ? "Single" : sys_chipInfoCores_s, sys_chipInfoModel_s, sys_chipInfoRev_s, sys_chipInfoFeatures_s);
+    element = createGenStatusElement("soc", httpRespBuffer);
     cJSON_AddItemToArray(elements, element);
 
     /** 
@@ -1247,10 +1302,31 @@ static esp_err_t doFlash(httpd_req_t *req)
  * HELPER FUNCTIONS
  * 
  */
-int req_get_client_ip(httpd_req_t *req, char ipstr[40])
+void sys_setMacAndHost(int wifiMode)
+{
+    esp_mac_type_t macType = (wifiMode == WIFI_MODE_STA) ? ESP_MAC_WIFI_STA : ESP_MAC_WIFI_SOFTAP;
+
+    esp_read_mac(sys_mac, macType);
+
+    snprintf(sys_mac_str, sizeof(sys_mac_str), MACSTR, sys_mac[0],
+             sys_mac[1], sys_mac[2], sys_mac[3], sys_mac[4], sys_mac[5]);
+
+    ESP_LOGI(TAG, "MAC Address: %s", sys_mac_str);
+
+#if FEAT_MAC_IN_MDNS_HOSTNAME
+    // Generate sys_hostname
+    sprintf(sys_hostname, "esp2ino-%02X%02X%02X", sys_mac[3], sys_mac[4], sys_mac[5]);
+    ESP_LOGI(TAG, "mdns sys_hostname: %s", sys_hostname);
+#else
+    sprintf(sys_hostname, "esp2ino");
+    ESP_LOGI(TAG, "mdns sys_hostname: %s", sys_hostname);
+#endif
+}
+
+int req_getClientIp(httpd_req_t *req, char ipstr[40])
 {
     int sockfd = httpd_req_to_sockfd(req);
-    struct sockaddr_in addr;
+    struct sockaddr_in6 addr;
     socklen_t addr_size = sizeof(addr);
 
     if (getpeername(sockfd, (struct sockaddr *)&addr, &addr_size) < 0)
@@ -1260,7 +1336,7 @@ int req_get_client_ip(httpd_req_t *req, char ipstr[40])
     }
 
     // Convert to IPv4 string
-    inet_ntop(AF_INET, &addr.sin_addr, ipstr, 40);
+    inet_ntop(AF_INET, &addr.sin6_addr.un.u32_addr[3], ipstr, 40);
     ESP_LOGI(TAG, "Client IP => %s", ipstr);
 
     return ESP_OK;
@@ -1331,7 +1407,11 @@ void app_main()
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(nvs_flash_init());
 
+    // Start ESP-IDF-style event loop.
     ESP_ERROR_CHECK(esp_event_loop_create_default());
+
+    // Register mDNS with the legacy event loop as per https://github.com/espressif/ESP8266_RTOS_SDK/issues/870.
+    esp_event_handler_register(ESP_EVENT_ANY_BASE, ESP_EVENT_ANY_ID, &legacy_event_handler, NULL);
 
     // Retrieve flash headers
     ESP_LOGI(TAG, "BEGIN: Retrieving system data.");
@@ -1346,12 +1426,39 @@ void app_main()
              flash_dataAddr[0], flash_dataAddr[1], flash_dataAddr[2],
              flash_dataAddr[3]);
 
-    ESP_ERROR_CHECK(esp_efuse_mac_get_default(sys_mac));
-
-    snprintf(sys_mac_str, sizeof(sys_mac_str), MACSTR, sys_mac[0],
-             sys_mac[1], sys_mac[2], sys_mac[3], sys_mac[4], sys_mac[5]);
-
     sys_realFlashSize = spi_flash_get_chip_size();
+
+    esp_chip_info(&sys_chipInfo);
+
+    sprintf(sys_chipInfoCores_s, "%d", sys_chipInfo.cores);
+    sprintf(sys_chipInfoRev_s, "%d", sys_chipInfo.revision);
+
+    switch (sys_chipInfo.model)
+    {
+    case 0:
+        sys_chipInfoModel_s = "ESP8266";
+        break;
+    case 1:
+        sys_chipInfoModel_s = "ESP32";
+        break;
+    default:
+        sys_chipInfoModel_s = "Unknown";
+        break;
+    }
+
+    ESP_LOGI(TAG, sys_chipInfoModel_s);
+
+    sprintf(sys_chipInfoFeatures_s, "%s%s%s%s",
+            sys_chipInfo.features & CHIP_FEATURE_WIFI_BGN ? "802.11bgn " : "",
+            sys_chipInfo.features & CHIP_FEATURE_BLE ? "BLE " : "",
+            sys_chipInfo.features & CHIP_FEATURE_BT ? "BT " : "",
+            sys_chipInfo.features & CHIP_FEATURE_EMB_FLASH ? "Embedded-Flash" : "External-Flash");
+
+    // This gives us a MAC address and hostname to use immediately.
+    // Will be called again if we enter fallback mode. (AP/STA modes have different MACs).
+    sys_setMacAndHost(WIFI_MODE_STA);
+
+    init_mdns();
 
     ESP_LOGI(TAG, "DONE: Retrieving system data.");
 

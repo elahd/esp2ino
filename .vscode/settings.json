@@ -23,5 +23,7 @@
     "cmake.generator": "Ninja",
     "prettier.configPath": "source/firmware/frontend/.prettierrc",
     "prettier.requireConfig": true,
-    "cmake.buildDirectory": "${workspaceFolder}/source/firmware/backend/build"
+    "cmake.buildDirectory": "${workspaceFolder}/source/firmware/backend/build",
+    "cmake.sourceDirectory": "${workspaceFolder}/source/firmware/backend",
+    "cmake.autoSelectActiveFolder": false
 }

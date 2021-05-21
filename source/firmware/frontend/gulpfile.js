@@ -39,6 +39,7 @@ const csslint = require("gulp-csslint");
 const htmlmin = require("html-minifier");
 
 const gzip = require("gulp-gzip");
+const favicon = require("gulp-base64-favicon");
 const inline = require("gulp-inline-source-html");
 const rename = require("gulp-rename");
 const replace = require("gulp-replace");
@@ -48,7 +49,7 @@ const replace = require("gulp-replace");
 // -----------------------------------------------------------------------------
 
 const htmlFolder = "src/";
-const dataFolder = "compiled/";
+const compiledFolder = "compiled/";
 const staticFolder = "../backend/static/";
 
 // -----------------------------------------------------------------------------
@@ -159,6 +160,7 @@ const inlineHandler = function () {
 const buildWebUI = function () {
     return gulp
         .src(htmlFolder + "*.html")
+        .pipe(favicon(htmlFolder))
         .pipe(
             linthtml(
                 {
@@ -178,10 +180,10 @@ const buildWebUI = function () {
             })
         )
         .pipe(rename("index.html"))
-        .pipe(gulp.dest(dataFolder))
+        .pipe(gulp.dest(compiledFolder))
         .pipe(gzip({ gzipOptions: { level: 9 } }))
         .pipe(rename("index.html.gz"))
-        .pipe(gulp.dest(dataFolder))
+        .pipe(gulp.dest(compiledFolder))
         .pipe(toHeader("index_html_gz", true))
         .pipe(gulp.dest(staticFolder));
 };
@@ -206,4 +208,4 @@ gulp.task("webui", function () {
 
 // gulp.task('default', gulp.series('csslint', 'webui'))
 
-gulp.task("default", gulp.series("webui"));
+gulp.task("default", gulp.parallel("webui"));
