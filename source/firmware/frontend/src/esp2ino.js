@@ -2,6 +2,7 @@
  * Debug info slider
  */
 
+tasmotaUrl = "";
 const acc = document.getElementsByClassName("accordion");
 let i;
 
@@ -39,9 +40,23 @@ function populateDeviceInfo() {
                 ) {
                     element.setAttribute("class", "changed");
                 }
+
+                if (entry.id == "chip") {
+                    setChip(element.innerHTML);
+                }
             });
         })
         .catch(console.error);
+}
+
+function setChip(chipName) {
+    if (chipName == "ESP32") {
+        tasmotaUrl = "http://ota.tasmota.com/tasmota32/release/tasmota32.bin";
+    } else if (chipName == "ESP8266") {
+        tasmotaUrl = "http://ota.tasmota.com/tasmota/release/tasmota.bin";
+    } else {
+        tasmotaUrl = "";
+    }
 }
 
 /**
@@ -74,7 +89,6 @@ const flashStatuses = {
 
 const ansiUp = new AnsiUp();
 ansiUp.use_classes = true;
-const tasmotaUrl = "http://ota.tasmota.com/tasmota/release/tasmota.bin";
 document.getElementById("flashBtn").onclick = function () {
     const encodedUrl = document.getElementById("fw_url").value;
     const extension = encodedUrl.split(/[#?]/)[0].split(".").pop().trim();

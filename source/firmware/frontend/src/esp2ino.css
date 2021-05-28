@@ -45,12 +45,12 @@ hr.major {
     margin-right: 0.3em;
 }
 
-#top-bar #chip {
+#top-bar #chip-wrap {
     display: flex;
     align-items: center;
 }
 
-#top-bar #chip span {
+#top-bar #chip-wrap span#chip {
     font-size: 0.7em;
     border: 1px #ddd solid;
     padding: 0.5em 2em;
