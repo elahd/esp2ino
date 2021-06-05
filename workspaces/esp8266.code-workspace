@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "esp8266"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"eboot_bin.h": "c",
+			"eboot_command.h": "c",
+			"esp2ino_main.h": "c"
+		}
+	}
+}

@@ -43,6 +43,8 @@ function populateDeviceInfo() {
 
                 if (entry.id == "chip") {
                     setChip(element.innerHTML);
+                    /* Set Tasmota URL for initial page load. */
+                    document.getElementById("fw_url").value = tasmotaUrl;
                 }
             });
         })
@@ -209,9 +211,6 @@ function processChunkedResponse(response) {
         }
     }
 }
-
-/* Set Tasmota URL for initial page load. */
-document.getElementById("fw_url").value = tasmotaUrl;
 
 document.getElementById("fw_select").onchange = function () {
     const selection = document.getElementById("fw_select").value;

@@ -50,7 +50,7 @@ const replace = require("gulp-replace");
 
 const htmlFolder = "src/";
 const compiledFolder = "compiled/";
-const staticFolder = "../backend/static/";
+const staticFolder = "../../../source/firmware/backend/shared/static/";
 
 // -----------------------------------------------------------------------------
 // Methods
@@ -76,8 +76,10 @@ const toHeader = function (name, debug) {
         const safename = name || filename.split(".").join("_");
 
         // Generate output
+        let buildStamp = new Date();
         let output = "";
         output +=
+            "// Build: " + buildStamp + "\n" +
             "unsigned int " +
             safename +
             "_len = " +

@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "ESP8266",
+            "includePath": [
+                "${env:IDF_PATH_8266}/components/**",
+                "${env:IDF_PATH_8266}/components/freertos/port/esp8266/include",
+                "${workspaceFolder}/source/static",
+                "${workspaceFolder}/source/main",
+                "${workspaceFolder}"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "databaseFilename": "",
+                "path": [
+                    "${workspaceFolder}/../../source/firmware/backend/static"
+                ]
+            },
+            "defines": [
+                "__ESP_FILE__"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64",
+            "compileCommands": "${workspaceFolder}/source/build/compile_commands.json",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

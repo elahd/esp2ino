@@ -1,0 +1,249 @@
+{
+    // https://go.microsoft.com/fwlink/?LinkId=733558 
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build All, Flash App & Wi-Fi, Monitor",
+            "dependsOn": [
+                "Build",
+                "Flash App",
+                "Monitor"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build All, Flash All (w/ Wi-Fi), Monitor",
+            "dependsOn": [
+                "Build",
+                "Flash All",
+                "Flash Wi-Fi Credentials",
+                "Monitor"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "SDK Config",
+            "type": "shell",
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "args": [
+                "menuconfig"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "args": [
+                "build"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "echo": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["relative", "${workspaceFolder}/source/build"]
+            }
+        },
+        {
+            "label": "Clean",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "args": [
+                "clean"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "echo": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["relative", "${workspaceFolder}/source/build"]
+            }
+        },
+        {
+            "label": "Full Clean",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "args": [
+                "fullclean"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "echo": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["relative", "${workspaceFolder}/source/build"]
+            }
+        },
+        {
+            "label": "Flash App",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-0001",
+                "app-flash"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Flash All",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-0001",
+                "flash"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Monitor",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "$HOME/esp/esp-idf/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-0001",
+                "monitor"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source",
+                "env": {
+                    "PATH": "${env:PATH}:${env:HOME}/esp/xtensa-lx106-elf/bin"
+                }
+            }
+            
+        },
+        {
+            "label": "Flash Wi-Fi Credentials",
+            "type": "shell",
+            "command": "$HOME/esp/esp-idf/components/esptool_py/esptool/esptool.py",
+            "args": [
+                "--chip",
+                "esp32",
+                "--port",
+                "/dev/cu.usbserial-0001",
+                "--baud",
+                "115200",
+                "--before",
+                "default_reset",
+                "--after",
+                "hard_reset",
+                "write_flash",
+                "-z",
+                "--flash_mode",
+                "dout",
+                "--flash_freq",
+                "26m",
+                "--flash_size",
+                "4MB",
+                "0x9000",
+                "${workspaceRoot}/dev-resources/nvs.bin"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "runOptions": { "reevaluateOnRerun": false},
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+    ]
+}

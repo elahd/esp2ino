@@ -1,0 +1,35 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "*.h": "c",
+        "*.inc": "c"
+    },
+    "C_Cpp.default.compilerPath": "xtensa-lx106-elf-g++",
+    "C_Cpp.default.cppStandard": "c++11",
+    "C_Cpp.default.cStandard": "c11",
+    "editor.formatOnSave": true,
+    // "clang-format.executable": "${workspaceFolder}/source/firmware/frontend/node_modules/.bin/clang-format",
+    "editor.defaultFormatter": "xaver.clang-format",
+    "cmake.buildTask": true,
+    "cmake.debugConfig": {
+        "cwd": "${workspaceFolder}/source/build"
+    },
+    "cmake.configureOnEdit": false,
+    "cmake.buildEnvironment": {
+        "CC": "${env:IDF_TOOLS_PATH}/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc",
+        "ASM": "${env:IDF_TOOLS_PATH}/xtensa-lx106-elf/bin/xtensa-lx106-elf-gcc",
+        "CXX": "${env:IDF_TOOLS_PATH}/xtensa-lx106-elf/bin/xtensa-lx106-elf-g++"
+    },
+    "cmake.generator": "Ninja",
+    // "prettier.configPath": "source/firmware/frontend/.prettierrc",
+    // "prettier.requireConfig": true,
+    "cmake.buildDirectory": "${workspaceFolder}/source/build",
+    "cmake.sourceDirectory": "${workspaceFolder}/source",
+    "cmake.autoSelectActiveFolder": false,
+    // "terminal.integrated.profiles.linux": {
+    //     "zsh (login)": {
+    //       "path": "bash",
+    //       "args": ["-c"]
+    //     }
+    // }
+}

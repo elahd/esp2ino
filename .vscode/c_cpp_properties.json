@@ -2,7 +2,7 @@
     "configurations": [
         {
             "name": "Mac",
-            "includePath": [ 
+            "includePath": [
                 "${workspaceFolder}/source/firmware/backend/**",
                 "${IDF_PATH}/components/**",
                 "${IDF_PATH}/tools/**",
@@ -22,7 +22,7 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64",
-            "compileCommands": "${workspaceFolder}/source/firmware/backend/build/compile_commands.json",
+            "compileCommands": "/Users/Elahd/dev/wyze_plug/esp2ino/source/firmware/backend/esp8266/build/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
