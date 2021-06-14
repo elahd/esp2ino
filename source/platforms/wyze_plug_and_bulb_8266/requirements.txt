@@ -6,5 +6,5 @@ macholib==1.14
 pyinstaller==4.3
 pyinstaller-hooks-contrib==2021.1
 requests==2.25.1
-urllib3==1.26.4
+urllib3==1.26.5
 validators==0.18.2
