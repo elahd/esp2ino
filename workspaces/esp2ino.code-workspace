@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.c": "c",
+			"*.h": "c",
+			"*.inc": "c"
+		},
+		"clang-format.executable": "${workspaceFolder}/source/firmware/frontend/node_modules/.bin/clang-format",
+		"cmake.autoSelectActiveFolder": false
+	}
+}

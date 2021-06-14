@@ -1,0 +1,6 @@
+[submodule "wyze-upload/WyzeUpdater"]
+	path = wyze-upload/WyzeUpdater
+	url = https://github.com/HclX/WyzeUpdater.git
+[submodule "source/platforms/wyze_plug_and_bulb_8266/WyzeUpdater"]
+	path = source/platforms/wyze_plug_and_bulb_8266/WyzeUpdater
+	url = https://github.com/HclX/WyzeUpdater.git

@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+		"dbaeumer.vscode-eslint",
+		"eamodio.gitlens",
+		"kamikillerto.vscode-linthtml",
+		"ritwickdey.liveserver",
+		"yzhang.markdown-all-in-one",
+		"esbenp.prettier-vscode"
+    ]
+}

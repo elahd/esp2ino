@@ -1,0 +1,278 @@
+{
+    // https://go.microsoft.com/fwlink/?LinkId=733558 
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Master: Build All, Flash (w/ Wi-Fi), and Monitor",
+            "dependsOn": [
+                "Frontend: Build & Import",
+                "Backend: Build",
+                "Backend: Flash",
+                "Backend: NVS",
+                "Backend: Monitor"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Menuconfig",
+            "type": "shell",
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "args": [
+                "menuconfig"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend: Build & Import",
+            "type": "shell",
+            "command": "gulp",
+            "presentation": {
+                "reveal": "always"
+            },
+            "runOptions": { "reevaluateOnRerun": false},
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/frontend"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Backend: NVS",
+            "type": "shell",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "esptool",
+                "--chip",
+                "esp8266",
+                "--port",
+                "/dev/cu.usbserial-110",
+                "--baud",
+                "115200",
+                "--before",
+                "default_reset",
+                "--after",
+                "hard_reset",
+                "write_flash",
+                "-z",
+                "--flash_mode",
+                "dout",
+                "--flash_freq",
+                "26m",
+                "--flash_size",
+                "4MB",
+                "0x9000",
+                "${workspaceRoot}/../nvs9000.bin"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "runOptions": { "reevaluateOnRerun": false},
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build, Flash, and Monitor",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-110",
+                "build",
+                "flash",
+                "monitor"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always",
+                "echo": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Backend: Build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "args": [
+                "build"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "echo": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": ["relative", "${workspaceFolder}/build"]
+            }
+        },
+        {
+            "label": "Backend: Monitor",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-110",
+                "monitor"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            }
+        },
+        {
+            "label": "Backend: Flash",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-110",
+                "flash"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Backend: Flash & Monitor",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-110",
+                "flash",
+                "monitor"
+            ],
+            "runOptions": { "reevaluateOnRerun": false},
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Backend: Clean Project",
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Backend: Full-Clean Project",
+            "command": "${env:IDF_PATH}/tools/idf.py",
+            "type": "shell",
+            "args": [
+                "fullclean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/source/firmware/backend"
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "ComPortNum",
+            "type": "pickString",
+            "description": "Port number",
+            "options": [
+                "/dev/cu.usbserial-110",
+                "/dev/cu.usbserial-10"
+            ],
+            "default": "/dev/cu.usbserial-110"
+        }
+    ]
+}

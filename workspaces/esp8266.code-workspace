@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "../source/firmware/backend/esp8266"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"eboot_bin.h": "c",
+			"eboot_command.h": "c",
+			"esp2ino_main.h": "c",
+			"__locale": "cpp",
+			"cstring": "cpp",
+			"typeinfo": "cpp",
+			"index.html.gz.h": "c"
+		}
+	}
+}
