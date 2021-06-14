@@ -2,7 +2,7 @@
  * Debug info slider
  */
 
-tasmotaUrl = "";
+tasmotaUrl = "http://ota.tasmota.com/tasmota/release/tasmota.bin";
 const acc = document.getElementsByClassName("accordion");
 let i;
 
@@ -42,7 +42,7 @@ function populateDeviceInfo() {
                 }
 
                 if (entry.id == "chip") {
-                    setChip(element.innerHTML);
+                    // setChip(element.innerHTML);
                     /* Set Tasmota URL for initial page load. */
                     document.getElementById("fw_url").value = tasmotaUrl;
                 }
@@ -51,15 +51,15 @@ function populateDeviceInfo() {
         .catch(console.error);
 }
 
-function setChip(chipName) {
-    if (chipName == "ESP32") {
-        tasmotaUrl = "http://ota.tasmota.com/tasmota32/release/tasmota32.bin";
-    } else if (chipName == "ESP8266") {
-        tasmotaUrl = "http://ota.tasmota.com/tasmota/release/tasmota.bin";
-    } else {
-        tasmotaUrl = "";
-    }
-}
+// function setChip(chipName) {
+//     if (chipName == "ESP32") {
+//         tasmotaUrl = "http://ota.tasmota.com/tasmota32/release/tasmota32.bin";
+//     } else if (chipName == "ESP8266") {
+//         tasmotaUrl = "http://ota.tasmota.com/tasmota/release/tasmota.bin";
+//     } else {
+//         tasmotaUrl = "";
+//     }
+// }
 
 /**
  * Download Backup
@@ -94,11 +94,14 @@ ansiUp.use_classes = true;
 document.getElementById("flashBtn").onclick = function () {
     const encodedUrl = document.getElementById("fw_url").value;
     const extension = encodedUrl.split(/[#?]/)[0].split(".").pop().trim();
+    const prefix = encodedUrl.split(':')[0];
     buildFlashTaskTable();
     if (!encodedUrl) {
         alert("You must enter a firmware URL before flashing.");
     } else if (extension !== "bin") {
         alert("File must be an uncompressed .bin.");
+    } else if (prefix !== "http") {
+        alert("Firmware URL must begin with http. https is not supported.");
     } else {
         document.getElementById("flashBtn").disabled = true;
         document.getElementById("flash-status-hr").hidden = false;

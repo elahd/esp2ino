@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['../WyzeUpdater/wyze_updater.py'],
-             pathex=['/Users/Elahd/dev/wyze_plug/esp2ino/wyze-upload/macos'],
+             pathex=['/Users/Elahd/dev/wyze_plug/esp2ino/source/platforms/wyze_plug_and_bulb_8266/macos'],
              binaries=[],
              datas=[],
              hiddenimports=[],

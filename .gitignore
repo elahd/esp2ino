@@ -5,7 +5,7 @@ __pycache__
 venv/
 .DS_STORE
 build
-nvs.bin
+*.dev.bin
 
 # == GENERIC ==
 # Prerequisites
@@ -39,7 +39,7 @@ nvs.bin
 *.dylib
 
 # Executables
-*.exe
+# *.exe
 *.out
 *.app
 *.i*86

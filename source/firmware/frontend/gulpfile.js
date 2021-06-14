@@ -50,7 +50,7 @@ const replace = require("gulp-replace");
 
 const htmlFolder = "src/";
 const compiledFolder = "compiled/";
-const staticFolder = "../../../source/firmware/backend/shared/static/";
+const staticFolder = "../backend/esp8266/source/static/";
 
 // -----------------------------------------------------------------------------
 // Methods
