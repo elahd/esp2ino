@@ -50,7 +50,7 @@ See install page in the [wiki](wiki).
 
 # Contributing
 
-See README.md in [workspaces/](tree/main/workspaces), or just  <a href="https://www.buymeacoffee.com/elahd" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 30px !important;width: 108.5 !important;" ></a>.
+See README.md in [workspaces/](tree/main/workspaces), or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
 
 ***
 
