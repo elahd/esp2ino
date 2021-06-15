@@ -1,6 +1,7 @@
 <div align="center">
-<h1 style="border-bottom:0; margin:0;"><img style="margin-bottom:-0.3em" src="resources/logo/favicon-io/favicon-32x32.png"> esp2ino</h1>
-<small><em>Formerly Wyze Plug Flasher</em></small>
+<img src="https://github.com/elahd/esp2ino/blob/main/resources/logo/favicon-io/favicon-32x32.png?raw=true">
+<h1>esp2ino</h1>
+ <sub><em>Formerly Wyze Plug Flasher</em></sub>
 </div>
 
 ***
