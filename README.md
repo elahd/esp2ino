@@ -44,13 +44,13 @@ Manufacturer firmware for ESP8266-based devices is usually built on the [ESP8266
 
 # Install Instructions
 
-See install page in the [wiki](wiki).
+See install page in the [wiki](https://github.com/elahd/esp2ino/wiki).
 
 ***
 
 # Contributing
 
-See README.md in [workspaces/](tree/main/workspaces), or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
+See README.md in [workspaces/](https://github.com/elahd/esp2ino/tree/main/workspaces), or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
 
 ***
 
