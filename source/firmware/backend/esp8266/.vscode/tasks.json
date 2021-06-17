@@ -3,14 +3,22 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build All, Flash Bootloader & App, Monitor",
-            "dependsOn": [
-                "Flash Bootloader",
-                "Build",
-                "Flash App",
-                "Monitor"
+            "label": "Build, Flash, Monitor",
+            "type": "shell",
+            "command": "$HOME/esp/ESP8266_RTOS_SDK/tools/idf.py",
+            "args": [
+                "-p",
+                "/dev/cu.usbserial-110",
+                "build",
+                "flash",
+                "monitor"
             ],
-            "dependsOrder": "sequence",
+            "presentation": {
+                "reveal": "always"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/source"
+            },
             "problemMatcher": []
         },
         {

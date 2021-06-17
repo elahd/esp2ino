@@ -29,6 +29,10 @@
 #include "nvs_flash.h"
 #include "smartconfig_ack.h"
 
+#ifndef MIN
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#endif
+
 /***
  * FUNCTIONS
  * */
@@ -52,6 +56,8 @@ void sys_setMacAndHost(int wifiMode);
 static void legacy_event_handler(void *ctx, system_event_t *event);
 bool staWifiCreds_getWyze(wifi_config_t *wifi_config);
 bool staWifiCreds_getEsp(wifi_config_t *wifi_config);
+esp_err_t handleUpload(httpd_req_t *req);
+esp_err_t flash_viaDownload(httpd_req_t *req);
 
 /** esp2ino_flash.c **/
 static esp_err_t doFlash(httpd_req_t *req);

@@ -9,8 +9,6 @@
 #include "eboot_bin.h"
 #endif
 
-// TO-DO: FIX FAVICON
-
 /**
  * Flags & Options
  * */
@@ -40,10 +38,6 @@
 /** Used for aligning httpRespBuffer variables **/
 #define SPI_FLASH_SEC_SIZE 4096
 
-/** Flashing **/
-#define OTA_0_ADDR 0x010000
-#define OTA_1_ADDR 0x110000
-
 /** Wi-Fi **/
 #define STA_WIFI_CONNECTED_BIT BIT0
 #define STA_WIFI_FAIL_BIT BIT1
@@ -55,6 +49,7 @@
 /** Misc **/
 #define BACKUP_BUF_SIZE 250
 #define LOG_BUF_MAX_LINE_SIZE 250
+#define OTA_UPLD_BUF_SIZE 250
 
 /**
  * GLOBALS
@@ -321,6 +316,9 @@ bool staWifiCreds_getEsp(wifi_config_t *wifi_config)
 
 static bool staWifi_init(void)
 {
+    // Don't use ESP_ERROR_CHECK in here. If there's a Wi-Fi connection failure,
+    // we should exit this function gracefully instead of aborting.
+
     static const char *TAG = "staWifi_init";
 
     staWifi_EventGroup = xEventGroupCreate();
@@ -383,6 +381,7 @@ static bool staWifi_init(void)
 
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &staWifi_eventHandler));
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &staWifi_eventHandler));
+
     vEventGroupDelete(staWifi_EventGroup);
 
     return false;
@@ -476,6 +475,9 @@ static void wifiFallback_eventHandler(void *arg, esp_event_base_t event_base,
  * */
 void smartConfig_init(void)
 {
+    // Don't use ESP_ERROR_CHECK in here. If there's a Wi-Fi connection failure,
+    // we should exit this function gracefully instead of aborting.
+
     static const char *TAG = "smartConfig_wifi";
 
     wifiMode = "Connected to Wi-Fi via ESP-Touch";
@@ -485,7 +487,7 @@ void smartConfig_init(void)
     {
         smartConfig_started = true;
         smartConfig_fail =
-            xTimerCreate("Smart Config Timeout Timer", pdMS_TO_TICKS(120000), false,
+            xTimerCreate("Smart Config Timeout Timer", pdMS_TO_TICKS(10000), false,
                          0, &wifiFallback_init);
     }
     else
@@ -779,6 +781,7 @@ httpd_uri_t flash = {.uri = "/flash", .method = HTTP_GET, .handler = handleFlash
 httpd_uri_t status = {.uri = "/info", .method = HTTP_GET, .handler = handleInfo};
 httpd_uri_t backup = {.uri = "/backup", .method = HTTP_GET, .handler = handleBackup};
 httpd_uri_t undo = {.uri = "/undo", .method = HTTP_GET, .handler = handleUndo};
+httpd_uri_t upload = {.uri = "/upload", .method = HTTP_POST, .handler = handleUpload};
 
 /**
  * Event handler for HTTP CLIENT. Used by OTA handler when fetching firmware. 
@@ -829,6 +832,42 @@ esp_err_t handleRoot(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     httpd_resp_send(req, index_html_gz, index_html_gz_len);
 
+    return ESP_OK;
+}
+
+esp_err_t handleUpload(httpd_req_t *req)
+{
+    static const char *TAG = "handleUpload";
+    char buf[100];
+    int ret, remaining = req->content_len;
+
+    while (remaining > 0)
+    {
+        /* Read the data for the request */
+        if ((ret = httpd_req_recv(req, buf,
+                                  MIN(remaining, sizeof(buf)))) <= 0)
+        {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                /* Retry receiving if timeout occurred */
+                continue;
+            }
+            return ESP_FAIL;
+        }
+
+        /* Send back the same data */
+        // httpd_resp_send_chunk(req, buf, ret);
+
+        remaining -= ret;
+
+        /* Log data received */
+        ESP_LOGI(TAG, "=========== RECEIVED DATA (%i Remains) ==========", remaining);
+        ESP_LOGI(TAG, "%.*s", ret, buf);
+        ESP_LOGI(TAG, "====================================");
+    }
+
+    // End response
+    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
@@ -1182,6 +1221,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &undo);
         httpd_register_uri_handler(server, &backup);
         httpd_register_uri_handler(server, &status);
+        httpd_register_uri_handler(server, &upload);
         return server;
     }
 
@@ -1207,31 +1247,105 @@ httpd_handle_t start_webserver(void)
  * This task is started by the http server's handleFlash (/flash) handler.
  *
  * */
-static esp_err_t doFlash(httpd_req_t *req)
+
+esp_err_t flash_viaUpload(httpd_req_t *req)
 {
-    static const char *TAG = "ota_task";
-    esp_err_t ret;
-
-    /***
-   * INITIALIZE / PRE-CHECK
-   * */
-
-    ESP_LOGI(TAG, "Running from %s at 0x%x.", sys_partRunning->label,
-             sys_partRunning->address);
-
-    if (sys_partRunning->address != sys_partConfigured->address)
+    esp_ota_handle_t update_handle = 0;
+    const esp_partition_t *update_partition = NULL;
+    ESP_LOGI(TAG, "Starting OTA...");
+    update_partition = esp_ota_get_next_update_partition(NULL);
+    if (update_partition == NULL)
     {
-        // We may want to take action here. For now, just report.
-        ESP_LOGW(TAG,
-                 "Partition %s at 0x%x configured as boot partition, but currently "
-                 "running from %s at 0x%x.",
-                 sys_partConfigured->label, sys_partConfigured->address,
-                 sys_partRunning->label, sys_partRunning->address);
+        ESP_LOGE(TAG, "Passive OTA partition not found");
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "Writing to partition subtype %d at offset 0x%x",
+             update_partition->subtype, update_partition->address);
+
+    esp_err_t err = esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &update_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_ota_begin failed, error=%d", err);
+        return err;
+    }
+    ESP_LOGI(TAG, "esp_ota_begin succeeded");
+
+    esp_err_t ota_write_err = ESP_OK;
+    char *upgrade_data_buf = (char *)malloc(OTA_UPLD_BUF_SIZE);
+    if (!upgrade_data_buf)
+    {
+        ESP_LOGE(TAG, "Couldn't allocate memory to upgrade data buffer");
+        return ESP_ERR_NO_MEM;
     }
 
-    /***
-     * DOWNLOAD & FLASH APP
-     * */
+    int ret;
+    int ota_total = req->content_len;
+    int remaining = req->content_len;
+    while (1)
+    {
+        /* Read the data for the request */
+        if ((ret = httpd_req_recv(req, upgrade_data_buf,
+                                  MIN(remaining, sizeof(upgrade_data_buf)))) <= 0)
+        {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                /* Retry receiving if timeout occurred */
+                continue;
+            }
+            return ESP_FAIL;
+        }
+        if (ret == 0)
+        {
+            ESP_LOGI(TAG, "Connection closed,all data received");
+            break;
+        }
+        if (ret < 0)
+        {
+            ESP_LOGE(TAG, "Error: SSL data read error");
+            break;
+        }
+        if (ret > 0)
+        {
+            ota_write_err = esp_ota_write(update_handle, (const void *)upgrade_data_buf, ret);
+            if (ota_write_err != ESP_OK)
+            {
+                break;
+            }
+            remaining -= ret;
+            ESP_LOGD(TAG, "Remaining %d", remaining);
+        }
+    }
+    free(upgrade_data_buf);
+
+    ESP_LOGD(TAG, "Total binary data length writen: %d", ota_total);
+
+    esp_err_t ota_end_err = esp_ota_end(update_handle);
+    if (ota_write_err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error: esp_ota_write failed! err=0x%d", err);
+        return ota_write_err;
+    }
+    else if (ota_end_err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error: esp_ota_end failed! err=0x%d. Image is invalid", ota_end_err);
+        return ota_end_err;
+    }
+
+    err = esp_ota_set_boot_partition(update_partition);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_ota_set_boot_partition failed! err=0x%d", err);
+        return err;
+    }
+    ESP_LOGI(TAG, "esp_ota_set_boot_partition succeeded");
+
+    return ESP_OK;
+}
+
+esp_err_t flash_viaDownload(httpd_req_t *req)
+{
+    static const char *TAG = "flashViaDownload";
+    esp_err_t ret;
 
     ESP_LOGI(TAG, "BEGIN: Downloading and flashing third party bin.");
 
@@ -1242,7 +1356,6 @@ static esp_err_t doFlash(httpd_req_t *req)
                                        .event_handler = _ota_http_event_handler};
 
     int attempt = 0;
-
     while (attempt <= 4)
     {
 
@@ -1280,14 +1393,6 @@ static esp_err_t doFlash(httpd_req_t *req)
         }
         else
         {
-            /** Report to Web UI [Task 1 of 5] **/
-            webui_msgPub(req, "1", FLASH_STATE_FAIL, "Failed while installing firmware. This should be recoverable. Try again after verifying that your "
-                                                     "internet connection is working and that your firmware URL is correct. "
-                                                     "<br><br>⚠️ DO NOT REVERT TO FACTORY FIRMWARE! ⚠️<br><br>"
-                                                     "Factory firmware may have been overwritten during this flashing attempt. "
-                                                     "Reverting to this overwritten firmware will brick your device. You can reboot / power cycle your device if needed to return to esp2ino.");
-
-            flash_erasedFactoryApp = true;
             return ESP_FAIL;
         }
 
@@ -1295,6 +1400,40 @@ static esp_err_t doFlash(httpd_req_t *req)
     }
 
     ESP_LOGI(TAG, "DONE: Downloading and flashing third party bin.");
+
+    return ESP_OK;
+}
+
+static esp_err_t doFlash(httpd_req_t *req)
+{
+    static const char *TAG = "ota_task";
+    esp_err_t ret;
+
+    /***
+   * INITIALIZE / PRE-CHECK
+   * */
+
+    // ESP_LOGI(TAG, "Running from %s at 0x%x.", sys_partRunning->label,
+    //          sys_partRunning->address);
+
+    /***
+     * DOWNLOAD & FLASH APP
+     * */
+
+    ret = flash_viaDownload(req);
+
+    if (ret != ESP_OK)
+    {
+        /** Report to Web UI [Task 1 of 5] **/
+        webui_msgPub(req, "1", FLASH_STATE_FAIL, "Failed while installing firmware. This should be recoverable. Try again after verifying that your "
+                                                 "internet connection is working and that your firmware URL is correct. "
+                                                 "<br><br>⚠️ DO NOT REVERT TO FACTORY FIRMWARE! ⚠️<br><br>"
+                                                 "Factory firmware may have been overwritten during this flashing attempt. "
+                                                 "Reverting to this overwritten firmware will brick your device. You can reboot / power cycle your device if needed to return to esp2ino.");
+
+        flash_erasedFactoryApp = true;
+        return ret;
+    }
 
     /***
      * ERASE FLASH - BOOTLOADER
@@ -1527,7 +1666,7 @@ void app_main()
     static const char *TAG = "main";
 
     // Use 115200 for compatibility with gdb.
-    ESP_ERROR_CHECK(uart_set_baudrate(0, 115200));
+    uart_set_baudrate(0, 115200);
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -1546,6 +1685,16 @@ void app_main()
     sys_partRunning = esp_ota_get_running_partition();
     sys_partConfigured = esp_ota_get_boot_partition();
     sys_partIdle = esp_ota_get_next_update_partition(NULL);
+
+    if (sys_partRunning->address != sys_partConfigured->address)
+    {
+        // We may want to take action here. For now, just report.
+        ESP_LOGW(TAG,
+                 "Partition %s at 0x%x configured as boot partition, but currently "
+                 "running from %s at 0x%x.",
+                 sys_partConfigured->label, sys_partConfigured->address,
+                 sys_partRunning->label, sys_partRunning->address);
+    }
 
     spi_flash_read(0x0, (uint32_t *)flash_dataAddr, 4);
     ESP_LOGI(TAG,
