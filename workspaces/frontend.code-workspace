@@ -4,5 +4,17 @@
 			"path": "../source/firmware/frontend"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"eslint.format.enable": true,
+		"prettier.configPath": ".prettierrc",
+		"prettier.requireConfig": true,
+		"eslint.alwaysShowStatus": true
+	},
+	"extensions": {
+		"recommendations": [
+			"syler.sass-indented",
+			"ritwickdey.live-sass",
+			"sibiraj-s.vscode-scss-formatter"
+		]
+	}
 }

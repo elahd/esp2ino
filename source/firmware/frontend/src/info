@@ -10,6 +10,5 @@
 	{ "id": "bootloader", "innerHTML": "Espressif (Factory)" },
 	{ "id": "debug-log", "innerHTML": "<pre>Ready to flash...</pre>" },
 	{ "id": "part_idle_content", "innerHTML": "Third Party" },
-	{ "id": "bootloader", "innerHTML": "Arduino eboot (Third Party)" },
-	{ "id": "chip", "innerHTML": "ESP8266" }
+	{ "id": "bootloader", "innerHTML": "Arduino eboot (Third Party)" }
 ]

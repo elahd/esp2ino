@@ -26,188 +26,187 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // -----------------------------------------------------------------------------
 // Dependencies
 // -----------------------------------------------------------------------------
-const { series, parallel } = require("gulp");
+// const {series, parallel} = require('gulp');
 
-const path = require("path");
+const path = require('path');
 
-const gulp = require("gulp");
-const through = require("through2");
+const gulp = require('gulp');
+const through = require('through2');
 
-const linthtml = require("@linthtml/gulp-linthtml");
-const csslint = require("gulp-csslint");
+const linthtml = require('@linthtml/gulp-linthtml');
+const csslint = require('gulp-csslint');
 
-const htmlmin = require("html-minifier");
+const htmlmin = require('html-minifier');
 
-const gzip = require("gulp-gzip");
-const favicon = require("gulp-base64-favicon");
-const inline = require("gulp-inline-source-html");
-const rename = require("gulp-rename");
-const replace = require("gulp-replace");
+const gzip = require('gulp-gzip');
+const favicon = require('gulp-base64-favicon');
+const inline = require('gulp-inline-source-html');
+const rename = require('gulp-rename');
+// const replace = require('gulp-replace');
 
 // -----------------------------------------------------------------------------
 // Configuration
 // -----------------------------------------------------------------------------
 
-const htmlFolder = "src/";
-const compiledFolder = "compiled/";
-const staticFolder = "../backend/esp8266/source/static/";
+const htmlFolder = 'src/';
+const compiledFolder = 'compiled/';
+const staticFolder = '../backend/esp8266/source/static/';
 
 // -----------------------------------------------------------------------------
 // Methods
 // -----------------------------------------------------------------------------
 
 const toMinifiedHtml = function (options) {
-    return through.obj(function (source, encoding, callback) {
-        if (source.isNull()) {
-            callback(null, source);
-            return;
-        }
+	return through.obj((source, encoding, callback) => {
+		if (source.isNull()) {
+			callback(null, source);
+			return;
+		}
 
-        const contents = source.contents.toString();
-        source.contents = Buffer.from(htmlmin.minify(contents, options));
-        callback(null, source);
-    });
+		const contents = source.contents.toString();
+		source.contents = Buffer.from(htmlmin.minify(contents, options));
+		callback(null, source);
+	});
 };
 
 const toHeader = function (name, debug) {
-    return through.obj(function (source, encoding, callback) {
-        const parts = source.path.split(path.sep);
-        const filename = parts[parts.length - 1];
-        const safename = name || filename.split(".").join("_");
+	return through.obj((source, encoding, callback) => {
+		const parts = source.path.split(path.sep);
+		const filename = parts[parts.length - 1];
+		const safename = name || filename.split('.').join('_');
 
-        // Generate output
-        let buildStamp = new Date();
-        let output = "";
-        output +=
-            "// Build: " + buildStamp + "\n" +
-            "unsigned int " +
-            safename +
-            "_len = " +
-            source.contents.length +
-            ";\n";
-        output +=
-            "const char " + safename + "[] __attribute__((aligned(4))) = {";
-        for (let i = 0; i < source.contents.length; i++) {
-            if (i > 0) {
-                output += ",";
-            }
-            if (i % 20 === 0) {
-                output += "\n";
-            }
-            output += "0x" + ("00" + source.contents[i].toString(16)).slice(-2);
-        }
-        output += "\n};";
+		// Generate output
+		const buildStamp = new Date();
+		let output = '';
+		output +=
+			'// Build: ' +
+			buildStamp +
+			'\n' +
+			'#include "index.html.gz.h"\n' +
+			'unsigned int ' +
+			safename +
+			'_len = ' +
+			source.contents.length +
+			';\n';
+		output += 'const char ' + safename + '[] __attribute__((aligned(4))) = {';
+		for (let i = 0; i < source.contents.length; i++) {
+			if (i > 0) {
+				output += ',';
+			}
+			if (i % 20 === 0) {
+				output += '\n';
+			}
+			output += '0x' + ('00' + source.contents[i].toString(16)).slice(-2);
+		}
+		output += '\n};';
 
-        // clone the contents
-        const destination = source.clone();
-        destination.path = source.path + ".h";
-        destination.contents = Buffer.from(output);
+		// clone the contents
+		const destination = source.clone();
+		destination.path = source.path + '.c';
+		destination.contents = Buffer.from(output);
 
-        if (debug) {
-            console.info(
-                "Image " +
-                    filename +
-                    " \tsize: " +
-                    source.contents.length +
-                    " bytes"
-            );
-        }
+		if (debug) {
+			console.info(
+				'Image ' + filename + ' \tsize: ' + source.contents.length + ' bytes',
+			);
+		}
 
-        callback(null, destination);
-    });
+		callback(null, destination);
+	});
 };
 
 const linthtmlReporter = function (filepath, issues) {
-    if (issues.length > 0) {
-        issues.forEach(function (issue) {
-            console.info(
-                "[gulp-eslint] " +
-                    filepath +
-                    " [" +
-                    issue.line +
-                    "," +
-                    issue.column +
-                    "]: " +
-                    "(" +
-                    issue.code +
-                    ") " +
-                    issue.msg
-            );
-        });
-        process.exitCode = 1;
-    }
+	if (issues.length > 0) {
+		issues.forEach(issue => {
+			console.info(
+				'[gulp-eslint] ' +
+					filepath +
+					' [' +
+					issue.line +
+					',' +
+					issue.column +
+					']: ' +
+					'(' +
+					issue.code +
+					') ' +
+					issue.msg,
+			);
+		});
+		process.exitCode = 1;
+	}
 };
 
 const inlineHandler = function () {
-    return function (source) {
-        if (source.sourcepath === "favicon.ico") {
-            source.format = "x-icon";
-            return;
-        }
+	return function (source) {
+		if (source.sourcepath === 'favicon.ico') {
+			source.format = 'x-icon';
+			return;
+		}
 
-        if (source.content) {
-            return;
-        }
+		if (source.content) {
+			return;
+		}
 
-        // Just ignore the vendored libs, repackaging makes things worse for the size
-        const path = source.sourcepath;
-        if (path.endsWith(".min.js")) {
-            source.compress = false;
-        } else if (path.endsWith(".min.css")) {
-            source.compress = false;
-        }
-    };
+		// Just ignore the vendored libs, repackaging makes things worse for the size
+		const thisPath = source.sourcepath;
+		if (thisPath.endsWith('.min.js')) {
+			source.compress = false;
+		} else if (thisPath.endsWith('.min.css')) {
+			source.compress = false;
+		}
+	};
 };
 
 const buildWebUI = function () {
-    return gulp
-        .src(htmlFolder + "*.html")
-        .pipe(favicon(htmlFolder))
-        .pipe(
-            linthtml(
-                {
-                    failOnError: true,
-                    configFile: ".linthtmlrc.js",
-                },
-                linthtmlReporter
-            )
-        )
-        .pipe(inline({ handlers: [inlineHandler()] }))
-        .pipe(
-            toMinifiedHtml({
-                collapseWhitespace: true,
-                removeComments: true,
-                minifyCSS: false,
-                minifyJS: false,
-            })
-        )
-        .pipe(rename("index.html"))
-        .pipe(gulp.dest(compiledFolder))
-        .pipe(gzip({ gzipOptions: { level: 9 } }))
-        .pipe(rename("index.html.gz"))
-        .pipe(gulp.dest(compiledFolder))
-        .pipe(toHeader("index_html_gz", true))
-        .pipe(gulp.dest(staticFolder));
+	return gulp
+		.src(htmlFolder + '*.html')
+		.pipe(favicon(htmlFolder))
+		.pipe(
+			linthtml(
+				{
+					configFile: '.linthtmlrc.js',
+					failOnError: true,
+				},
+				linthtmlReporter,
+			),
+		)
+		.pipe(inline({handlers: [inlineHandler()]}))
+		.pipe(
+			toMinifiedHtml({
+				collapseWhitespace: true,
+				minifyCSS: false,
+				minifyJS: false,
+				removeComments: true,
+			}),
+		)
+		.pipe(rename('index.html'))
+		.pipe(gulp.dest(compiledFolder))
+		.pipe(gzip({gzipOptions: {level: 9}}))
+		.pipe(rename('index.html.gz'))
+		.pipe(gulp.dest(compiledFolder))
+		.pipe(toHeader('index_html_gz', true))
+		.pipe(gulp.dest(staticFolder));
 };
 
 // -----------------------------------------------------------------------------
 // Tasks
 // -----------------------------------------------------------------------------
 
-gulp.task("csslint", function () {
-    gulp.src([htmlFolder + "*.css", "!" + htmlFolder + "**.min.css"])
-        .pipe(
-            csslint({
-                ids: false,
-            })
-        )
-        .pipe(csslint.formatter());
+gulp.task('csslint', () => {
+	gulp
+		.src([htmlFolder + '*.css', '!' + htmlFolder + '**.min.css'])
+		.pipe(
+			csslint({
+				ids: false,
+			}),
+		)
+		.pipe(csslint.formatter());
 });
 
-gulp.task("webui", function () {
-    return buildWebUI();
+gulp.task('webui', () => {
+	return buildWebUI();
 });
 
 // gulp.task('default', gulp.series('csslint', 'webui'))
 
-gulp.task("default", gulp.parallel("webui"));
+gulp.task('default', gulp.parallel('webui'));

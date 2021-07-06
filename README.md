@@ -68,7 +68,7 @@ esp2ino is different from tuya-convert in the following ways:
 
 # Sources
 
-This project borrows bits and pieces from:
+esp2ino builds on:
 1. [Tuya-Convert](https://github.com/ct-Open-Source/tuya-convert)
 2. Espressif's [ESP8266_RTOS_SDK program samples](https://github.com/espressif/ESP8266_RTOS_SDK/tree/master/examples).
 3. [vtrust's](https://www.vtrust.de) [esp8266-ota-flash-convert](https://github.com/vtrust-de/esp8266-ota-flash-convert)

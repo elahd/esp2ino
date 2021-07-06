@@ -1,5 +1,5 @@
-@charset "UTF-8";
 /* Style the accordion panel. Note: hidden by default */
+
 .center {
   text-align: center;
 }
@@ -20,161 +20,152 @@ hr.major {
   padding: 1em;
   background-color: #eee;
   border-bottom: 1px #ddd solid;
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  #logo-container {
+    display: flex;
+    align-items: center;
+  }
+
+  #logo-text {
+    font-weight: light;
+    font-size: 1.5em;
+    color: black;
+  }
+
+  #logo-img {
+    height: 1.5em;
+    vertical-align: text-bottom;
+    margin-right: 0.3em;
+  }
 }
 
-#top-bar .container {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-}
+#wifi-wrapper {
+  &[state='none'] {
+    margin-bottom: 2em;
 
-#top-bar #logo-container {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-}
+    #wifi-status-bar {
+      display: none;
+    }
+  }
 
-#top-bar #logo-text {
-  font-weight: light;
-  font-size: 1.5em;
-  color: black;
-}
+  &[state='waiting'] {
+    #wifi-connect {
+      display: none;
+    }
+    #wifi-status-spinner {
+      display: block;
+    }
+  }
 
-#top-bar #logo-img {
-  height: 1.5em;
-  vertical-align: text-bottom;
-  margin-right: 0.3em;
-}
+  &[state='list'] {
+    #wifi-connect {
+      display: block;
+    }
+    #wifi-status-spinner {
+      display: none;
+    }
+    #wifi-selector {
+      display: block;
+    }
+  }
 
-#wifi-wrapper[state='none'] {
-  margin-bottom: 2em;
-}
+  &[state='idle'],
+  &[state='connected'] {
+    #wifi-connect {
+      display: block;
+    }
+    #wifi-status-spinner {
+      display: none;
+    }
+  }
 
-#wifi-wrapper[state='none'] #wifi-status-bar {
-  display: none;
-}
+  .button-flat {
+    height: 2.5rem;
+    line-height: 2.5rem;
+  }
 
-#wifi-wrapper[state='waiting'] #wifi-connect {
-  display: none;
-}
+  #wifi-status-bar {
+    border-bottom: 1px #ddd solid;
+    margin-bottom: 2em;
+    margin-top: 0;
+    padding: 0.5rem 0;
+    font-size: 1.3rem;
+    background-color: #fffdc9;
 
-#wifi-wrapper[state='waiting'] #wifi-status-spinner {
-  display: block;
-}
+    .container {
+      display: flex;
+      justify-content: space-between;
+      height: 2em;
+    }
 
-#wifi-wrapper[state='list'] #wifi-connect {
-  display: block;
-}
+    #wifi-status-text {
+      margin: auto 0;
+    }
 
-#wifi-wrapper[state='list'] #wifi-status-spinner {
-  display: none;
-}
+    .button-outline#wifi-connect {
+      margin: 0;
+      border-color: #606c76;
+      color: #606c76;
+      font-weight: normal;
+      border-width: 1px;
+      text-transform: none;
 
-#wifi-wrapper[state='list'] #wifi-selector {
-  display: block;
-}
+      .sk-fading-circle {
+        padding: 15% auto;
+        margin-right: 1rem;
+        vertical-align: text-bottom;
+        display: inline-block;
 
-#wifi-wrapper[state='idle'] #wifi-connect, #wifi-wrapper[state='connected'] #wifi-connect {
-  display: block;
-}
+        & .sk-circle:before {
+          background-color: #fff;
+        }
+      }
 
-#wifi-wrapper[state='idle'] #wifi-status-spinner, #wifi-wrapper[state='connected'] #wifi-status-spinner {
-  display: none;
-}
+      &:hover {
+        border-color: #1e65a7;
+        color: #1e65a7;
+      }
+    }
 
-#wifi-wrapper .button-flat {
-  height: 2.5rem;
-  line-height: 2.5rem;
-}
+    #wifi-status-wrapper {
+      vertical-align: middle;
+      margin: auto 0;
+    }
 
-#wifi-wrapper #wifi-status-bar {
-  border-bottom: 1px #ddd solid;
-  margin-bottom: 2em;
-  margin-top: 0;
-  padding: 0.5rem 0;
-  font-size: 1.3rem;
-  background-color: #fffdc9;
-}
+    #wifi-status-spinner {
+      margin: auto 0;
+      .sk-fading-circle {
+        padding: 15% auto;
+        margin-right: 1.5rem;
+        display: block;
+      }
+    }
+  }
+  #wifi-selector {
+    padding: 1em;
+    border-bottom: 1px #ddd solid;
+    margin-bottom: 2em;
+    margin-top: -2em;
+    display: none;
 
-#wifi-wrapper #wifi-status-bar .container {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-  height: 2em;
-}
+    .container {
+      max-height: 60vh;
+      overflow: scroll;
+    }
 
-#wifi-wrapper #wifi-status-bar #wifi-status-text {
-  margin: auto 0;
-}
+    button {
+      margin: 0;
+    }
 
-#wifi-wrapper #wifi-status-bar .button-outline#wifi-connect {
-  margin: 0;
-  border-color: #606c76;
-  color: #606c76;
-  font-weight: normal;
-  border-width: 1px;
-  text-transform: none;
-}
-
-#wifi-wrapper #wifi-status-bar .button-outline#wifi-connect .sk-fading-circle {
-  padding: 15% auto;
-  margin-right: 1rem;
-  vertical-align: text-bottom;
-  display: inline-block;
-}
-
-#wifi-wrapper #wifi-status-bar .button-outline#wifi-connect .sk-fading-circle .sk-circle:before {
-  background-color: #fff;
-}
-
-#wifi-wrapper #wifi-status-bar .button-outline#wifi-connect:hover {
-  border-color: #1e65a7;
-  color: #1e65a7;
-}
-
-#wifi-wrapper #wifi-status-bar #wifi-status-wrapper {
-  vertical-align: middle;
-  margin: auto 0;
-}
-
-#wifi-wrapper #wifi-status-bar #wifi-status-spinner {
-  margin: auto 0;
-}
-
-#wifi-wrapper #wifi-status-bar #wifi-status-spinner .sk-fading-circle {
-  padding: 15% auto;
-  margin-right: 1.5rem;
-  display: block;
-}
-
-#wifi-wrapper #wifi-selector {
-  padding: 1em;
-  border-bottom: 1px #ddd solid;
-  margin-bottom: 2em;
-  margin-top: -2em;
-  display: none;
-}
-
-#wifi-wrapper #wifi-selector .container {
-  max-height: 60vh;
-  overflow: scroll;
-}
-
-#wifi-wrapper #wifi-selector button {
-  margin: 0;
-}
-
-#wifi-wrapper #wifi-selector #wifi-close {
-  width: 100%;
+    #wifi-close {
+      width: 100%;
+    }
+  }
 }
 
 #fw_url, #fw_file {
@@ -295,112 +286,101 @@ hr.major {
   -webkit-animation: sk-circleFadeDelay 1.2s infinite ease-in-out both;
   animation: sk-circleFadeDelay 1.2s infinite ease-in-out both;
 }
-
 .sk-fading-circle .sk-circle2 {
   -webkit-transform: rotate(30deg);
+  -ms-transform: rotate(30deg);
   transform: rotate(30deg);
 }
-
 .sk-fading-circle .sk-circle3 {
   -webkit-transform: rotate(60deg);
+  -ms-transform: rotate(60deg);
   transform: rotate(60deg);
 }
-
 .sk-fading-circle .sk-circle4 {
   -webkit-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
   transform: rotate(90deg);
 }
-
 .sk-fading-circle .sk-circle5 {
   -webkit-transform: rotate(120deg);
+  -ms-transform: rotate(120deg);
   transform: rotate(120deg);
 }
-
 .sk-fading-circle .sk-circle6 {
   -webkit-transform: rotate(150deg);
+  -ms-transform: rotate(150deg);
   transform: rotate(150deg);
 }
-
 .sk-fading-circle .sk-circle7 {
   -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
-
 .sk-fading-circle .sk-circle8 {
   -webkit-transform: rotate(210deg);
+  -ms-transform: rotate(210deg);
   transform: rotate(210deg);
 }
-
 .sk-fading-circle .sk-circle9 {
   -webkit-transform: rotate(240deg);
+  -ms-transform: rotate(240deg);
   transform: rotate(240deg);
 }
-
 .sk-fading-circle .sk-circle10 {
   -webkit-transform: rotate(270deg);
+  -ms-transform: rotate(270deg);
   transform: rotate(270deg);
 }
-
 .sk-fading-circle .sk-circle11 {
   -webkit-transform: rotate(300deg);
+  -ms-transform: rotate(300deg);
   transform: rotate(300deg);
 }
-
 .sk-fading-circle .sk-circle12 {
   -webkit-transform: rotate(330deg);
+  -ms-transform: rotate(330deg);
   transform: rotate(330deg);
 }
-
 .sk-fading-circle .sk-circle2:before {
   -webkit-animation-delay: -1.1s;
   animation-delay: -1.1s;
 }
-
 .sk-fading-circle .sk-circle3:before {
   -webkit-animation-delay: -1s;
   animation-delay: -1s;
 }
-
 .sk-fading-circle .sk-circle4:before {
   -webkit-animation-delay: -0.9s;
   animation-delay: -0.9s;
 }
-
 .sk-fading-circle .sk-circle5:before {
   -webkit-animation-delay: -0.8s;
   animation-delay: -0.8s;
 }
-
 .sk-fading-circle .sk-circle6:before {
   -webkit-animation-delay: -0.7s;
   animation-delay: -0.7s;
 }
-
 .sk-fading-circle .sk-circle7:before {
   -webkit-animation-delay: -0.6s;
   animation-delay: -0.6s;
 }
-
 .sk-fading-circle .sk-circle8:before {
   -webkit-animation-delay: -0.5s;
   animation-delay: -0.5s;
 }
-
 .sk-fading-circle .sk-circle9:before {
   -webkit-animation-delay: -0.4s;
   animation-delay: -0.4s;
 }
-
 .sk-fading-circle .sk-circle10:before {
   -webkit-animation-delay: -0.3s;
   animation-delay: -0.3s;
 }
-
 .sk-fading-circle .sk-circle11:before {
   -webkit-animation-delay: -0.2s;
   animation-delay: -0.2s;
 }
-
 .sk-fading-circle .sk-circle12:before {
   -webkit-animation-delay: -0.1s;
   animation-delay: -0.1s;
@@ -427,13 +407,13 @@ hr.major {
     opacity: 1;
   }
 }
-
 /**
   * Loading Spinner END
   **/
 /**
 * Flash Debug Log Table END
 */
+
 /**
 * Milligram Overrides START
 */
@@ -470,7 +450,8 @@ h3 {
 
 select:focus {
   border-color: #1e65a7;
-  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 8" width="30"><path fill="%231e65a7" d="M0,0l6,8l6-8"/></svg>') center right no-repeat;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 8" width="30"><path fill="%231e65a7" d="M0,0l6,8l6-8"/></svg>')
+    center right no-repeat;
 }
 
 input[type='text']:focus {
@@ -480,10 +461,10 @@ input[type='text']:focus {
 a {
   color: #1e65a7;
 }
-
 /**
 * Milligram Overrides END
 */
+
 /**
 * Debug Console START
 */
@@ -491,7 +472,6 @@ a {
   padding: 0 18px;
   display: none;
   overflow: hidden;
-  -webkit-transition: 0.4s;
   transition: 0.4s;
 }
 
@@ -546,10 +526,10 @@ a {
 .ansi-cyan-fg {
   color: cyan;
 }
-
 /**
 * Debug Console END
 */
+
 /**
 * Modal START
 */
@@ -565,32 +545,26 @@ a {
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
-  -webkit-transition: all 0.3s;
   transition: all 0.3s;
 }
-
 .modal-window:target {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
 }
-
 .modal-window > div {
   width: 400px;
   position: absolute;
   top: 50%;
   left: 50%;
-  -webkit-transform: translate(-50%, -50%);
-          transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
   padding: 2em;
   background: white;
   border-radius: 1rem;
 }
-
 .modal-window header {
   font-weight: bold;
 }
-
 .modal-window h1 {
   font-size: 150%;
   margin: 0 0 15px;
@@ -607,12 +581,9 @@ a {
   width: 70px;
   text-decoration: none;
 }
-
 .modal-close:hover {
   color: black;
 }
-
 /**
 * Modal END
 */
-/*# sourceMappingURL=esp2ino.css.map */
