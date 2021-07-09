@@ -60,8 +60,8 @@
 #define STA_WIFI_FAIL_BIT BIT1
 #define STA_WIFI_SCAN_RESULTS_BIT BIT2
 #define STA_WIFI_NUM_ATTEMPTS 5
-#define FALLBACK_SSID "esp2ino"
-#define FALLBACK_MAX_CON 10
+#define AP_MODE_SSID "esp2ino"
+#define AP_MODE_MAX_CON 10
 
 /** Misc **/
 #define BACKUP_BUF_SIZE 250
@@ -77,16 +77,6 @@
 #ifndef MAX
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #endif
-
-#define ESP2INO_ERROR_RETURN_FALSE(x) \
-    do                                \
-    {                                 \
-        esp_err_t __err_rc = (x);     \
-        if (__err_rc != ESP_OK)       \
-        {                             \
-            return false;             \
-        }                             \
-    } while (0);
 
 /***
  * 
@@ -104,6 +94,7 @@ extern esp_err_t flash_viaUpload(httpd_req_t *req);
 
 extern TaskHandle_t xRebootAgent;
 extern EventGroupHandle_t rebootAgent_EventGroup;
+extern ip4_addr_t wifi__ip_ap;
 
 /** System Attributes **/
 extern esp_chip_info_t sys_chipInfo;
@@ -151,11 +142,12 @@ esp_err_t wifi__apStaScanHelper(httpd_req_t *req, char *respBuffer, size_t respB
 
 extern char wifi__staSsid[32];
 extern char wifi__staBssid[6];
-extern char wifi__ip_sta[32];
-extern char wifi__ip_ap[32];
+extern char wifi__ip_sta_str[INET_ADDRSTRLEN];
+extern char wifi__ip_ap_str[INET_ADDRSTRLEN];
 extern char *wifi__mode;
 extern bool wifi__isConnected;
 extern char wifi__channel[6];
+extern ip4_addr_t server_ip;
 extern SemaphoreHandle_t wifi__connectSemaphore;
 
 /**

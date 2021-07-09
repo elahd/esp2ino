@@ -1,34 +1,35 @@
 {
-    "configurations": [
-        {
-            "name": "ESP8266",
-            "includePath": [
-                "${env:IDF_PATH_8266}/components/**",
-                "${env:IDF_PATH_8266}/components/freertos/port/esp8266/include",
-                "${workspaceFolder}/source/static",
-                "${workspaceFolder}/source/main",
-                "${workspaceFolder}/source/components",
-                "${workspaceFolder}"
-            ],
-            "browse": {
-                "limitSymbolsToIncludedHeaders": false,
-                "databaseFilename": "",
-                "path": [
-                    "${workspaceFolder}/source/static",
-                    "${env:IDF_PATH_8266}/components/**",
-                    "${workspaceFolder}/source/components",
-                    "${env:IDF_PATH_8266}/components/freertos/port/esp8266/include"
-                ]
-            },
-            "defines": [
-                "__ESP_FILE__"
-            ],
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64",
-            "compileCommands": "${workspaceFolder}/source/build/compile_commands.json",
-            "configurationProvider": "ms-vscode.cmake-tools"
-        }
-    ],
-    "version": 4
+	"configurations": [
+		{
+			"name": "ESP8266",
+			"includePath": [
+				"${env:IDF_PATH_8266}/components/**",
+				"${env:IDF_PATH_8266}/components/freertos/port/esp8266/include",
+				"${workspaceFolder}/source",
+				"${workspaceFolder}/source/static/**",
+				"${workspaceFolder}/source/main/**",
+				"${workspaceFolder}/source/components"
+			],
+			"browse": {
+				"limitSymbolsToIncludedHeaders": false,
+				"databaseFilename": "",
+				"path": [
+					"${env:IDF_PATH_8266}/components/**",
+					"${env:IDF_PATH_8266}/components/freertos/port/esp8266/include",
+					"${workspaceFolder}/source",
+					"${workspaceFolder}/source/static",
+					"${workspaceFolder}/source/main/**",
+					"${workspaceFolder}/source/components/**"
+				]
+			},
+			"defines": ["__ESP_FILE__"],
+			"cStandard": "c11",
+			"cppStandard": "c++17",
+			"intelliSenseMode": "macos-gcc-x64",
+			"compileCommands": "${workspaceFolder}/source/build/compile_commands.json",
+			"configurationProvider": "ms-vscode.cmake-tools",
+			"compilerPath": "${env:TOOLCHAIN_PATH_8266}/bin/xtensa-lx106-elf-g++"
+		}
+	],
+	"version": 4
 }

@@ -46,9 +46,9 @@ bool safemode__wifi_init(void)
     tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &ap_ip_info);
     tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
 
-    wifi_config_t wifi_config_ap = {.ap = {.ssid = FALLBACK_SSID,
-                                           .ssid_len = strlen(FALLBACK_SSID),
-                                           .max_connection = FALLBACK_MAX_CON,
+    wifi_config_t wifi_config_ap = {.ap = {.ssid = AP_MODE_SSID,
+                                           .ssid_len = strlen(AP_MODE_SSID),
+                                           .max_connection = AP_MODE_MAX_CON,
                                            .authmode = WIFI_AUTH_OPEN}};
 
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config_ap));

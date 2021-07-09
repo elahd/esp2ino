@@ -1,11 +1,12 @@
 /**
- * TODO:
+ * TO-DO:
  * - When connected via router, use webui to connect to a different wifi network. esp2ino will successfully connect to the new network, but the webui will report a failure. (Reconnecting breaks the web session.) Webui should attempt to ping the server behind the scenes, then refresh if ping is successful.
  */
 
 const fwUrl = document.getElementById('fw_url');
 const fwFile = document.getElementById('fw_file');
 const flashBtn = document.getElementById('flashBtn');
+flashComplete = false;
 
 /**
  * Debug info slider
@@ -185,7 +186,9 @@ function onChunkedResponseComplete(result) {
 
 function onChunkedResponseError(err) {
 	console.error('Error! ' + err);
-	alert('Unknown error. Check browser console.');
+	if (flashComplete == false) {
+		alert('Unknown error. Check browser console.');
+	}
 }
 
 function appendFlashStatus(jsonObj) {
@@ -221,6 +224,7 @@ function appendFlashStatus(jsonObj) {
 				particleCount: 150,
 				spread: 180,
 			});
+			flashComplete = true;
 			break;
 	}
 }

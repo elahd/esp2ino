@@ -4,6 +4,7 @@
  * TO-DO
  * 1. uxTaskGetStackHighWaterMark() to tune task stack size for http server.
  * 2. Have webui pop up automatically after connecting using captive portal protocol.
+ * 3. When connecting to Wi-Fi with bad credentials, webui times out before esp2ino finishes trying to connect. If you requeest another wifi scan while esp2ino is still trying to connect, the scan will silently fail.
  */
 
 /**
@@ -19,10 +20,11 @@ static httpd_handle_t server;
 
 /** System Attributes **/
 char sys_hostname[25] = "esp2ino";
+ip4_addr_t wifi__ip_ap;
 char wifi__staSsid[32];
 char wifi__staBssid[6];
-char wifi__ip_sta[32];
-char wifi__ip_ap[32];
+char wifi__ip_sta_str[INET_ADDRSTRLEN];
+char wifi__ip_ap_str[INET_ADDRSTRLEN];
 char *wifi__mode;
 bool wifi__isConnected;
 char wifi__channel[6];
@@ -84,11 +86,6 @@ static esp_err_t legacy_event_handler(void *ctx, system_event_t *event)
 
 static void init_mdns(void)
 {
-    char rev[4];
-    char cores[4];
-    sprintf(rev, "%d", sys_chipInfo.revision);
-    sprintf(cores, "%d", sys_chipInfo.cores);
-
     esp_err_t err = mdns_init();
     if (err)
     {
@@ -105,8 +102,8 @@ static void init_mdns(void)
 
     mdns_txt_item_t serviceTxtData[4] = {
         {"chip_model", sys_chipInfoModel_s},
-        {"chip_rev", rev},
-        {"chip_cores", cores},
+        {"chip_rev", sys_chipInfoRev_s},
+        {"chip_cores", sys_chipInfoCores_s},
         {"chip_features", sys_chipInfoFeatures_s}};
 
     mdns_service_txt_set("_esp2ino", "_tcp", serviceTxtData, 4);
@@ -233,9 +230,11 @@ static esp_err_t ota_http_event_handler(esp_http_client_event_t *evt)
 
 esp_err_t flash_viaUpload(httpd_req_t *req)
 {
+    static const char *TAG = "flash_viaUpload";
+
     esp_ota_handle_t update_handle = 0;
     const esp_partition_t *update_partition = NULL;
-    ESP_LOGI(TAG, "Starting OTA...");
+    ESP_LOGI(TAG, "Starting OTA via Upload.");
     update_partition = esp_ota_get_next_update_partition(NULL);
     if (update_partition == NULL)
     {
@@ -335,11 +334,15 @@ esp_err_t flash_viaUpload(httpd_req_t *req)
 
 static esp_err_t flash_viaDownload(httpd_req_t *req)
 {
-    static const char *TAG = "flashViaDownload";
+    static const char *TAG = "flash_viaDownload";
     esp_err_t ret;
 
+    ESP_LOGI(TAG, "Starting OTA via Download.");
+
     esp_http_client_config_t config = {.url = user_url_buf,
-                                       .event_handler = ota_http_event_handler};
+                                       .event_handler = ota_http_event_handler,
+                                       .disable_auto_redirect = false,
+                                       .skip_cert_common_name_check = true};
 
     int attempt = 0;
     while (attempt <= 4)
@@ -356,7 +359,7 @@ static esp_err_t flash_viaDownload(httpd_req_t *req)
             ESP_LOGW(TAG, "HTTP connection failed. Trying again...");
 
             /** Report to Web UI [Task 1 of 5] **/
-            sprintf(flashTsk_logBuffer, "Failed to download firmware. Trying again. Attempt %d of 5.", attempt + 1);
+            snprintf(flashTsk_logBuffer, sizeof(flashTsk_logBuffer), "Failed to download firmware. Trying again. Attempt %d of 5.", attempt + 1);
             webui_msgPub(req, "1", FLASH_STATE_RETRY, flashTsk_logBuffer);
 
             printf("Retrying in:\n");
@@ -588,10 +591,10 @@ static void sys_setMacAndHost(int wifi__mode)
 
 #if FEAT_MAC_IN_MDNS_HOSTNAME
     // Generate sys_hostname
-    sprintf(sys_hostname, "esp2ino-%02X%02X%02X", sys_mac[3], sys_mac[4], sys_mac[5]);
+    snprintf(sys_hostname, sizeof(sys_hostname), "esp2ino-%02X%02X%02X", sys_mac[3], sys_mac[4], sys_mac[5]);
     ESP_LOGI(TAG, "mdns sys_hostname: %s", sys_hostname);
 #else
-    sprintf(sys_hostname, "esp2ino");
+    snprintf(sys_hostname, sizeof(sys_hostname), "esp2ino");
     ESP_LOGI(TAG, "mdns sys_hostname: %s", sys_hostname);
 #endif
 }
@@ -604,6 +607,11 @@ static void sys_setMacAndHost(int wifi__mode)
 
 static void esp2ino_init(void)
 {
+#if DEV_FORCE_SAFEMODE
+    ESP_LOGW(TAG, "TRIGGERING SAFE MODE. (Development Toggle)");
+    ESP_ERROR_CHECK(ESP_FAIL);
+#endif
+
     safemode__enabled = false;
 
     wifi__connectSemaphore = xSemaphoreCreateMutex();
@@ -640,18 +648,18 @@ static void esp2ino_init(void)
 
     esp_chip_info(&sys_chipInfo);
 
-    sprintf(sys_chipInfoCores_s, "%d", sys_chipInfo.cores);
-    sprintf(sys_chipInfoRev_s, "%d", sys_chipInfo.revision);
+    snprintf(sys_chipInfoCores_s, sizeof(sys_chipInfoCores_s), "%d", sys_chipInfo.cores);
+    snprintf(sys_chipInfoRev_s, sizeof(sys_chipInfoCores_s), "%d", sys_chipInfo.revision);
 
     sys_chipInfoModel_s = "ESP8266";
 
     ESP_LOGI(TAG, "%s", sys_chipInfoModel_s);
 
-    sprintf(sys_chipInfoFeatures_s, "%s%s%s%s",
-            sys_chipInfo.features & CHIP_FEATURE_WIFI_BGN ? "802.11bgn " : "",
-            sys_chipInfo.features & CHIP_FEATURE_BLE ? "BLE " : "",
-            sys_chipInfo.features & CHIP_FEATURE_BT ? "BT " : "",
-            sys_chipInfo.features & CHIP_FEATURE_EMB_FLASH ? "Embedded-Flash" : "External-Flash");
+    snprintf(sys_chipInfoFeatures_s, sizeof(sys_chipInfoFeatures_s), "%s%s%s%s",
+             sys_chipInfo.features & CHIP_FEATURE_WIFI_BGN ? "802.11bgn " : "",
+             sys_chipInfo.features & CHIP_FEATURE_BLE ? "BLE " : "",
+             sys_chipInfo.features & CHIP_FEATURE_BT ? "BT " : "",
+             sys_chipInfo.features & CHIP_FEATURE_EMB_FLASH ? "Embedded-Flash" : "External-Flash");
 
     // This gives us a MAC address and hostname to use immediately.
     // Will be called again if we enter fallback mode. (AP/STA modes have different MACs).
@@ -665,7 +673,6 @@ static void esp2ino_init(void)
 
     ESP_LOGI(TAG, "Starting Wi-Fi.");
 
-    /* Try to connect using stored credentials. */
     /* TO-DO: If this fails, force safe mode --- or boot in AP-only mode. */
     wifi__apSta_init();
 
@@ -731,13 +738,9 @@ static void esp2ino_init_safe(void)
 
 static bool sys_safeModeCheck(void)
 {
-#if DEV_FORCE_SAFEMODE
-    ESP_LOGW(TAG, "SAFE MODE TRIGGERED. (Development Toggle)");
-    return true;
-#else
     esp_reset_reason_t reset_reason = esp_reset_reason_early();
 
-    if (reset_reason == ESP_RST_PANIC || reset_reason == ESP_RST_TASK_WDT || reset_reason == ESP_RST_INT_WDT || reset_reason == ESP_RST_UNKNOWN)
+    if (reset_reason == ESP_RST_PANIC || reset_reason == ESP_RST_TASK_WDT || reset_reason == ESP_RST_WDT || reset_reason == ESP_RST_INT_WDT || reset_reason == ESP_RST_UNKNOWN)
     {
         ESP_LOGW(TAG, "SAFE MODE TRIGGERED. (Reset Reason %i)", reset_reason);
         return true;
@@ -747,7 +750,6 @@ static bool sys_safeModeCheck(void)
         ESP_LOGW(TAG, "No need for safe mode. (Reset Reason %i)", reset_reason);
         return false;
     }
-#endif
 }
 
 extern void app_main()
@@ -758,6 +760,8 @@ extern void app_main()
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(nvs_flash_init());
+
+    IP4_ADDR(&wifi__ip_ap, 10, 0, 0, 1);
 
     // Start ESP-IDF-style event loop.
     ESP_ERROR_CHECK(esp_event_loop_create_default());

@@ -50,7 +50,7 @@ int webui_debugPub(int chr)
         cJSON *jsonObj = createDebugStatusElement(debug_logBuffer);
 
         jsonBuffer = cJSON_PrintUnformatted(jsonObj);
-        sprintf(jsonBuffer + strlen(jsonBuffer), "\n");
+        snprintf(jsonBuffer + strlen(jsonBuffer), sizeof(jsonBuffer + strlen(jsonBuffer)), "\n");
 
         // ESP_LOGI(TAG, "%s", jsonBuffer);
 

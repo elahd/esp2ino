@@ -70,7 +70,7 @@ static esp_err_t handleUpload(httpd_req_t *req)
     }
     else
     {
-        sprintf(httpRespBuffer, "Flashing failed.");
+        snprintf(httpRespBuffer, sizeof(httpRespBuffer), "Flashing failed.");
         ESP_LOGE(TAG, "%s", httpRespBuffer);
 
 #if FEAT_DEBUG_LOG_TO_WEBUI
@@ -99,23 +99,32 @@ static esp_err_t handleBackup(httpd_req_t *req)
     char hdr_disp_buf[150];
     char hdr_len_buf[150];
 
-    sprintf(hdr_disp_buf, "attachment; filename=\"firmware-%s.bin\"", sys_mac_str);
+    snprintf(hdr_disp_buf, sizeof(hdr_disp_buf), "attachment; filename=\"firmware-%s.bin\"", sys_mac_str);
     httpd_resp_set_hdr(req, "Content-Disposition", hdr_disp_buf);
 
-    sprintf(hdr_len_buf, "%d", sys_realFlashSize);
+    snprintf(hdr_len_buf, sizeof(hdr_len_buf), "%d", sys_realFlashSize);
     httpd_resp_set_hdr(req, "Content-Length", hdr_len_buf);
 
     httpd_resp_set_type(req, HTTPD_TYPE_OCTET);
 
     int read = 0;
+    esp_err_t sendRet;
     while (read < sys_realFlashSize)
     {
         spi_flash_read(read, (char *)buf, BACKUP_BUF_SIZE);
-        httpd_resp_send_chunk(req, buf, BACKUP_BUF_SIZE);
+        sendRet = httpd_resp_send_chunk(req, buf, BACKUP_BUF_SIZE);
+        if (sendRet != ESP_OK)
+        {
+            // Stop if user cancels download. Doesn't work consistently. Device may require reboot after client cancels download.
+            ESP_LOGW(TAG, "Error sending backup. Exiting.");
+            goto handleBackupBail;
+        }
         read += BACKUP_BUF_SIZE;
     }
 
     httpd_resp_send_chunk(req, NULL, 0);
+
+handleBackupBail:
 
     ESP_LOGI(TAG, "DONE: Sending backup.");
 
@@ -177,7 +186,7 @@ static esp_err_t handleFlash(httpd_req_t *req)
     flash_httpdReq = req;
 #endif
 
-    char client_ipstr[INET6_ADDRSTRLEN];
+    char client_ipstr[INET_ADDRSTRLEN];
     req_getClientIp(req, client_ipstr);
 
     buf_len = httpd_req_get_url_query_len(req) + 1;
@@ -233,7 +242,7 @@ static esp_err_t handleFlash(httpd_req_t *req)
     }
     else
     {
-        sprintf(httpRespBuffer, "Flashing %s failed.", user_url_buf);
+        snprintf(httpRespBuffer, sizeof(httpRespBuffer), "Flashing %s failed.", user_url_buf);
         ESP_LOGE(TAG, "%s", httpRespBuffer);
 
 #if FEAT_DEBUG_LOG_TO_WEBUI
@@ -256,7 +265,7 @@ esp_err_t handleUndo(httpd_req_t *req)
 
     if (flash_erasedFactoryApp)
     {
-        sprintf(httpRespBuffer, "Can't undo. The factory app no longer exists.");
+        snprintf(httpRespBuffer, sizeof(httpRespBuffer), "Can't undo. The factory app no longer exists.");
         ESP_LOGW(TAG, "%s", httpRespBuffer);
     }
     else
@@ -264,13 +273,13 @@ esp_err_t handleUndo(httpd_req_t *req)
         esp_err_t ret = esp_ota_set_boot_partition(sys_partIdle);
         if (ret)
         {
-            sprintf(httpRespBuffer, "Failed to undo.");
+            snprintf(httpRespBuffer, sizeof(httpRespBuffer), "Failed to undo.");
             ESP_LOGE(TAG, "%s", httpRespBuffer);
         }
         else
         {
             sys_partIdle = esp_ota_get_next_update_partition(NULL);
-            sprintf(httpRespBuffer, "Undone successfully. Power cycle your device to return to factory firmware.");
+            snprintf(httpRespBuffer, sizeof(httpRespBuffer), "Undone successfully. Power cycle your device to return to factory firmware.");
             ESP_LOGI(TAG, "%s", httpRespBuffer);
         }
     }
@@ -357,7 +366,7 @@ static esp_err_t handleInfo(httpd_req_t *req)
 {
     memset(httpRespBuffer, 0, sizeof httpRespBuffer);
 
-    char client_ipstr[INET6_ADDRSTRLEN];
+    char client_ipstr[INET_ADDRSTRLEN];
     req_getClientIp(req, client_ipstr);
 
     const char *FlashSize = "";
@@ -547,9 +556,9 @@ esp_err_t flashSuccessWrapUp(httpd_req_t *req)
 {
     static const char *TAG = "flashSuccessWrapup";
 
-    sprintf(httpRespBuffer,
-            "Flashed %s successfully, rebooting...\n Sensitive operations occur on first boot and may take up to five minutes to complete.",
-            user_url_buf);
+    snprintf(httpRespBuffer, sizeof(httpRespBuffer),
+             "Flashed %s successfully, rebooting...\n Sensitive operations occur on first boot and may take up to five minutes to complete.",
+             user_url_buf);
     ESP_LOGI(TAG, "%s", httpRespBuffer);
 
     /** Report to Web UI [DONE] **/

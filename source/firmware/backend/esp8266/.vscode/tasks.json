@@ -3,6 +3,18 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "Convert Arduino Bootloader",
+			"command": "gulp",
+			"presentation": {
+				"reveal": "always"
+			},
+			"runOptions": { "reevaluateOnRerun": false },
+			"options": {
+				"cwd": "${workspaceFolder}/eboot"
+			},
+			"problemMatcher": []
+		},
+		{
 			"label": "Build, Flash, Monitor",
 			"type": "shell",
 			"command": "$HOME/esp/ESP8266_RTOS_SDK/tools/idf.py",
@@ -29,11 +41,22 @@
 			"problemMatcher": []
 		},
 		{
-			"label": "Build All, Flash Empty Wyze Firmware, Flash esp2ino, Monitor",
+			"label": "Build All, Flash EMPTY Wyze Firmware, Flash esp2ino, Monitor",
 			"dependsOn": [
 				"Build",
 				"Flash Wyze Firmware (w/o Wyze App)",
 				"Flash App",
+				"Monitor"
+			],
+			"dependsOrder": "sequence",
+			"problemMatcher": []
+		},
+		{
+			"label": "Build All, Flash FULL Wyze Firmware, Flash esp2ino at 0x110000, Monitor",
+			"dependsOn": [
+				"Build",
+				"Flash Wyze Firmware (w/ Wyze App)",
+				"Flash App @ 0x110000",
 				"Monitor"
 			],
 			"dependsOrder": "sequence",
@@ -225,6 +248,28 @@
 			}
 		},
 		{
+			"label": "Erase Flash",
+			"type": "shell",
+			"command": "$HOME/esp/ESP8266_RTOS_SDK/components/esptool_py/esptool/esptool.py",
+			"args": [
+				"--chip",
+				"esp8266",
+				"--port",
+				"/dev/cu.usbserial-110",
+				"--baud",
+				"230400",
+				"erase_flash"
+			],
+			"presentation": {
+				"reveal": "always"
+			},
+			"runOptions": { "reevaluateOnRerun": false },
+			"options": {
+				"cwd": "${workspaceFolder}/source"
+			},
+			"problemMatcher": []
+		},
+		{
 			"label": "Flash App @ 0x110000",
 			"type": "shell",
 			"command": "$HOME/esp/ESP8266_RTOS_SDK/components/esptool_py/esptool/esptool.py",
@@ -246,7 +291,7 @@
 				"--flash_freq",
 				"26m",
 				"--flash_size",
-				"4MB",
+				"2MB",
 				"0x110000",
 				"${workspaceRoot}/source/build/esp2ino.bin"
 			],
@@ -281,7 +326,7 @@
 				"--flash_freq",
 				"26m",
 				"--flash_size",
-				"4MB",
+				"2MB",
 				"0x9000",
 				"${workspaceRoot}/dev-resources/nvs.dev.bin"
 			],
@@ -316,9 +361,79 @@
 				"--flash_freq",
 				"26m",
 				"--flash_size",
-				"4MB",
+				"2MB",
 				"0x0",
 				"${workspaceRoot}/dev-resources/wyze_202106_f10k.dev.bin"
+			],
+			"presentation": {
+				"reveal": "always"
+			},
+			"runOptions": { "reevaluateOnRerun": false },
+			"options": {
+				"cwd": "${workspaceFolder}/source"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Flash esp2ino @ 0x110000",
+			"type": "shell",
+			"command": "$HOME/esp/ESP8266_RTOS_SDK/components/esptool_py/esptool/esptool.py",
+			"args": [
+				"--chip",
+				"esp8266",
+				"--port",
+				"/dev/cu.usbserial-110",
+				"--baud",
+				"230400",
+				"--before",
+				"default_reset",
+				"--after",
+				"hard_reset",
+				"write_flash",
+				"-z",
+				"--flash_mode",
+				"dout",
+				"--flash_freq",
+				"26m",
+				"--flash_size",
+				"2MB",
+				"0x110000",
+				"${workspaceRoot}/source/build/esp2ino.bin"
+			],
+			"presentation": {
+				"reveal": "always"
+			},
+			"runOptions": { "reevaluateOnRerun": false },
+			"options": {
+				"cwd": "${workspaceFolder}/source"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Flash Wyze Firmware (w/ Wyze App)",
+			"type": "shell",
+			"command": "$HOME/esp/ESP8266_RTOS_SDK/components/esptool_py/esptool/esptool.py",
+			"args": [
+				"--chip",
+				"esp8266",
+				"--port",
+				"/dev/cu.usbserial-110",
+				"--baud",
+				"230400",
+				"--before",
+				"default_reset",
+				"--after",
+				"hard_reset",
+				"write_flash",
+				"-z",
+				"--flash_mode",
+				"dout",
+				"--flash_freq",
+				"26m",
+				"--flash_size",
+				"2MB",
+				"0x0",
+				"${workspaceRoot}/dev-resources/wyze_202106_f110k.dev.bin"
 			],
 			"presentation": {
 				"reveal": "always"

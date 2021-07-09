@@ -1,0 +1,36 @@
+{
+	"info": {
+		"_postman_id": "826d20fa-24c4-4b11-8b36-ffecc7e462f6",
+		"name": "esp2ino",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Upload Firmware",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": ""
+					}
+				},
+				"url": {
+					"raw": "http://10.0.0.1/upload",
+					"protocol": "http",
+					"host": [
+						"10",
+						"0",
+						"0",
+						"1"
+					],
+					"path": [
+						"upload"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

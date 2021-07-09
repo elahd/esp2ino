@@ -1,0 +1,6 @@
+{
+	"eslint.format.enable": true,
+	"prettier.configPath": ".prettierrc",
+	"prettier.requireConfig": true,
+	"eslint.alwaysShowStatus": true
+}

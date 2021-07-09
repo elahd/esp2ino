@@ -1,0 +1,3 @@
+BasedOnStyle: Microsoft
+AlignAfterOpenBracket: Align
+AlignTrailingComments: 'true'

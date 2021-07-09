@@ -4,19 +4,26 @@ char *wifi__mode = "Unknown";
 bool wifi__isConnected = false;
 
 static int connectRetryNum;
+
+#if DEV_WIFI_AUTOCONNECT
 static const wifi_config_t emptyStruct;
+#endif
 
 static EventGroupHandle_t staWifi_EventGroup;
 static EventGroupHandle_t wifiScan_EventGroup;
 
+#if DEV_WIFI_AUTOCONNECT
 static bool staWifiCreds_getWyze(wifi_config_t *wifi_config);
 static bool staWifiCreds_getEsp(wifi_config_t *wifi_config);
+#endif
+
 static void wifi_eventHandler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 
 /**
  * Loads Wi-Fi credentials stored by Wyze firmware.
  * wifi_config must be 0 initialized.
  */
+#if DEV_WIFI_AUTOCONNECT
 static bool staWifiCreds_getWyze(wifi_config_t *wifi_config)
 {
     static const char *TAG = "wifi__staWifiCreds_getWyze";
@@ -143,6 +150,7 @@ static bool staWifiCreds_getEsp(wifi_config_t *wifi_config)
 
     return ret;
 }
+#endif
 
 bool wifi__apSta_init(void)
 {
@@ -157,12 +165,14 @@ bool wifi__apSta_init(void)
 
     /* Initialize WiFi */
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_init(&cfg));
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_set_ps(WIFI_PS_NONE));
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_set_mode(WIFI_MODE_APSTA));
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
 
-    /* Load Stored WiFi Config */
     wifi_config_t wifi_config_sta;
+
+#if DEV_WIFI_AUTOCONNECT
+    /* Load Stored WiFi Config */
     if (staWifiCreds_getEsp(&wifi_config_sta))
     {
         wifi__mode = "Retrieved Wi-Fi Credentials via Espressif";
@@ -175,9 +185,12 @@ bool wifi__apSta_init(void)
     {
         wifi__mode = "Not connected to Wi-Fi network.";
     }
+#endif
 
-    ESP2INO_ERROR_RETURN_FALSE(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_eventHandler, NULL));
-    ESP2INO_ERROR_RETURN_FALSE(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_eventHandler, NULL));
+    wifi__mode = "Manual";
+
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_eventHandler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_eventHandler, NULL));
 
     if (strlen((char *)wifi_config_sta.sta.password) && FEAT_MODERN_WIFI_ONLY)
     {
@@ -188,29 +201,30 @@ bool wifi__apSta_init(void)
     tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP);
     tcpip_adapter_ip_info_t ap_ip_info;
 
-    IP4_ADDR(&ap_ip_info.ip, 10, 0, 0, 1);
-    IP4_ADDR(&ap_ip_info.gw, 10, 0, 0, 1);
+    memcpy(&ap_ip_info.ip, &wifi__ip_ap, sizeof(ap_ip_info.ip));
+    memcpy(&ap_ip_info.gw, &wifi__ip_ap, sizeof(ap_ip_info.ip));
     IP4_ADDR(&ap_ip_info.netmask, 255, 255, 255, 0);
+    strlcpy(wifi__ip_ap_str, ip4addr_ntoa(&ap_ip_info.ip), sizeof(wifi__ip_ap_str));
 
     tcpip_adapter_dhcp_status_t status;
     tcpip_adapter_dhcpc_get_status(TCPIP_ADAPTER_IF_AP, &status);
     tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &ap_ip_info);
+
     tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
 
-    // strcpy(wifi__ip_ap, (char *)&ap_ip_info.ip);
-    strlcpy(wifi__ip_ap, ip4addr_ntoa(&ap_ip_info.ip), sizeof(wifi__ip_ap));
-
-    wifi_config_t wifi_config_ap = {.ap = {.ssid = FALLBACK_SSID,
-                                           .ssid_len = strlen(FALLBACK_SSID),
-                                           .max_connection = FALLBACK_MAX_CON,
+    wifi_config_t wifi_config_ap = {.ap = {.ssid = AP_MODE_SSID,
+                                           .ssid_len = strlen(AP_MODE_SSID),
+                                           .max_connection = AP_MODE_MAX_CON,
                                            .authmode = WIFI_AUTH_OPEN}};
 
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config_ap));
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_start());
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config_ap));
+    ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "wifi__apSta_init finished. Connecting to network...");
+    ESP_LOGI(TAG, "wifi__apSta_init finished.");
 
+#if DEV_WIFI_AUTOCONNECT
+    ESP_LOGI(TAG, "Connecting to network...");
     EventBits_t bits = xEventGroupWaitBits(staWifi_EventGroup,
                                            STA_WIFI_CONNECTED_BIT | STA_WIFI_FAIL_BIT,
                                            pdFALSE,
@@ -231,6 +245,7 @@ bool wifi__apSta_init(void)
     {
         ESP_LOGW(TAG, "Wi-Fi connection timeout.");
     }
+#endif
 
     vEventGroupDelete(staWifi_EventGroup);
 
@@ -302,8 +317,8 @@ static void wifi_eventHandler(void *arg, esp_event_base_t event_base,
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
     {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        strlcpy(wifi__ip_sta, ip4addr_ntoa(&event->ip_info.ip), sizeof(wifi__ip_sta));
-        ESP_LOGI(TAG, "Got IP:%s", wifi__ip_sta);
+        strlcpy(wifi__ip_sta_str, ip4addr_ntoa(&event->ip_info.ip), sizeof(wifi__ip_sta_str));
+        ESP_LOGI(TAG, "Got IP:%s", ip4addr_ntoa(&event->ip_info.ip));
         connectRetryNum = 0;
         xEventGroupSetBits(staWifi_EventGroup, STA_WIFI_CONNECTED_BIT);
     }
@@ -345,7 +360,7 @@ esp_err_t wifi__apStaScanHelper(httpd_req_t *req, char *respBuffer, size_t respB
 
     if (bits & STA_WIFI_SCAN_RESULTS_BIT)
     {
-        // Replaced by pdTRUE for xClearOnExit above.
+        // v0.4 Replaced by pdTRUE for xClearOnExit above.
         // xEventGroupClearBits(wifiScan_EventGroup, STA_WIFI_SCAN_RESULTS_BIT);
 
         if (esp_wifi_scan_get_ap_num(&sta_number) != ESP_OK)
@@ -373,13 +388,13 @@ esp_err_t wifi__apStaScanHelper(httpd_req_t *req, char *respBuffer, size_t respB
                 memcpy(ssid_str, ap_list_buffer[i].ssid, 32);
 
                 char signal_str[16];
-                sprintf(signal_str, "%d", wifi_signal);
+                snprintf(signal_str, sizeof(signal_str), "%d", wifi_signal);
 
                 char channel_str[16];
-                sprintf(channel_str, "%d", ap_list_buffer[i].primary);
+                snprintf(channel_str, sizeof(channel_str), "%d", ap_list_buffer[i].primary);
 
                 char bssid_str[18];
-                sprintf(bssid_str, MACSTR, MAC2STR(ap_list_buffer[i].bssid));
+                snprintf(bssid_str, sizeof(bssid_str), MACSTR, MAC2STR(ap_list_buffer[i].bssid));
 
                 snprintf(respBuffer, respBufferSize,
                          "{\"ssid\": \"%s\","
@@ -426,12 +441,12 @@ esp_err_t wifi__apStaSetHelper(httpd_req_t *req, char param_ssid[32], char param
     // snprintf(httpRespBuffer, sizeof(httpRespBuffer),
     //          "{\"type\":\"wifi_set_success\","
     //          "\"ip\":\"%s\"}",
-    //          wifi__ip_sta);
+    //          wifi__ip_sta_str);
     // httpd_resp_send_chunk(req, httpRespBuffer, -1);
 
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_disconnect());
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
-    ESP2INO_ERROR_RETURN_FALSE(esp_wifi_connect());
+    ESP_ERROR_CHECK(esp_wifi_disconnect());
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
+    ESP_ERROR_CHECK(esp_wifi_connect());
 
     return ESP_OK;
 }

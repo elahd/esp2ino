@@ -1,0 +1,11 @@
+{
+	"name": "esp2ino_arduino_bootloader_converter",
+	"version": "1.0.0",
+	"description": "",
+	"main": "gulpfile.js",
+	"devDependencies": {
+		"gulp": "^4.0.2",
+		"gulp-js-import": "^1.0.6",
+		"gulp-rename": "^2.0.0"
+	}
+}
