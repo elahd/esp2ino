@@ -5,6 +5,7 @@ __pycache__
 venv/
 .DS_STORE
 build
+dist
 *.dev.bin
 .tokens
 
