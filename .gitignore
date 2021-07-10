@@ -7,6 +7,7 @@ venv/
 build
 dist
 *.dev.bin
+.tokens
 
 # == GENERIC ==
 # Prerequisites

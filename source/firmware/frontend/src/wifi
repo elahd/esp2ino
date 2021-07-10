@@ -1,0 +1,77 @@
+{
+	"type": "wifi_results",
+	"wifi_results": [
+		{
+			"ssid": "myhouse",
+			"signal": 100,
+			"channel": 4,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "[Hidden]",
+			"signal": 100,
+			"channel": 4,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "WorldLink",
+			"signal": 94,
+			"channel": 1,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "Carlos Danger's Fiesta",
+			"signal": 84,
+			"channel": 11,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "5A66C0",
+			"signal": 84,
+			"channel": 6,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "Ethan18",
+			"signal": 80,
+			"channel": 11,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "myhouse_EXT",
+			"signal": 80,
+			"channel": 4,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "DIRECT-3F-HP OfficeJet Pro 8020",
+			"signal": 74,
+			"channel": 6,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "MyAltice 6afae3",
+			"signal": 70,
+			"channel": 1,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "WiFifour",
+			"signal": 70,
+			"channel": 1,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "AA0090",
+			"signal": 70,
+			"channel": 11,
+			"bssid": "00:00:00:00:00:00"
+		},
+		{
+			"ssid": "NETGEAR05",
+			"signal": 66,
+			"channel": 1,
+			"bssid": "00:00:00:00:00:00"
+		}
+	]
+}
