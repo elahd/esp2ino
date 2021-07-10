@@ -1,6 +1,6 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/elahd/esp2ino) ![GitHub all releases](https://img.shields.io/github/downloads/elahd/esp2ino/total) ![GitHub](https://img.shields.io/github/license/elahd/esp2ino) ![Codacy grade](https://img.shields.io/codacy/grade/432b8cd357c2496d8a8887511dad3edf?logo=codacy) [![Buy Me A Coffee](https://img.shields.io/badge/%20-Buy%20Me%20A%20Coffee-grey?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/elahd)
 
-__*
+***
 
 <div align="center">
 <img src="https://github.com/elahd/esp2ino/blob/main/resources/logo/favicon-io/favicon-32x32.png?raw=true">
@@ -8,11 +8,11 @@ __*
  <sub><em>Formerly Wyze Plug Flasher</em></sub>
 </div>
 
-__*
+***
 
 Free your ESP8266-based smart home devices from vendor lock-in. esp2ino loads Arduino-based third-party firmware (Tasmota, ESPurna, ESPEasy, etc.) on to ESP8266-based devices _over-the-air_.
 
-__*
+***
 
 ## Purpose
 
@@ -42,19 +42,19 @@ Manufacturer firmware for ESP8266-based devices is usually built on the [ESP8266
 
 __This software is provided as-is with no guarantees as to quality, features, functionality, or safety. Use of this software is entirely at your own risk. You agree to not hold the author liable for damage, loss of life, financial damages, loss of functionality, etc.__
 
-__*
+***
 
 # Install Instructions
 
 See install page in the [wiki](https://github.com/elahd/esp2ino/wiki).
 
-__*
+***
 
 # Contributing
 
 See [Contributing]([wiki](https://github.com/elahd/esp2ino/wiki/Contributing)) page in the wiki or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
 
-__*
+***
 
 # esp2ino vs tuya-convert
 
