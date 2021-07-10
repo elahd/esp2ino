@@ -52,7 +52,7 @@ See install page in the [wiki](https://github.com/elahd/esp2ino/wiki).
 
 # Contributing
 
-See [Contributing]([wiki](https://github.com/elahd/esp2ino/wiki/Contributing)) page in the wiki or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
+See the [Contributing](https://github.com/elahd/esp2ino/wiki/Contributing) page in the wiki or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
 
 ***
 
