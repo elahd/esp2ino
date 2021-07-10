@@ -102,7 +102,7 @@ static esp_err_t handleBackup(httpd_req_t *req)
     snprintf(hdr_disp_buf, sizeof(hdr_disp_buf), "attachment; filename=\"firmware-%s.bin\"", sys_mac_str);
     httpd_resp_set_hdr(req, "Content-Disposition", hdr_disp_buf);
 
-    snprintf(hdr_len_buf, sizeof(hdr_len_buf), "%d", sys_realFlashSize);
+    snprintf(hdr_len_buf, sizeof(hdr_len_buf), "%u", sys_realFlashSize);
     httpd_resp_set_hdr(req, "Content-Length", hdr_len_buf);
 
     httpd_resp_set_type(req, HTTPD_TYPE_OCTET);
@@ -135,7 +135,7 @@ static esp_err_t handleWifiStatus(httpd_req_t *req)
 {
     // static const char *TAG = "server__handleWifiStatus";
 
-    char *jsonBuffer = malloc(512);
+    char *jsonBuffer = malloc(1024);
 
     // Hold if Wi-Fi status is requested by webui while connection attempts in progress.
     if (wifi__connectSemaphore != NULL)
@@ -158,7 +158,7 @@ static esp_err_t handleWifiStatus(httpd_req_t *req)
     }
     else
     {
-        snprintf(jsonBuffer, 512, "{\"status\":\"not_connected\"}");
+        snprintf(jsonBuffer, 1024, "{\"status\":\"not_connected\"}");
     }
 
     httpd_resp_send(req, jsonBuffer, -1);
