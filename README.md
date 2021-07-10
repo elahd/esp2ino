@@ -1,4 +1,4 @@
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/elahd/esp2ino) ![GitHub all releases](https://img.shields.io/github/downloads/elahd/esp2ino/total) ![GitHub](https://img.shields.io/github/license/elahd/esp2ino) ![Codacy grade](https://img.shields.io/codacy/grade/432b8cd357c2496d8a8887511dad3edf?logo=codacy) [![Buy Me A Coffee](https://img.shields.io/badge/%20-Buy%20Me%20A%20Coffee-grey?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/elahd)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/elahd/esp2ino) ![GitHub all releases](https://img.shields.io/github/downloads/elahd/esp2ino/total) ![GitHub](https://img.shields.io/github/license/elahd/esp2ino) [![Buy Me A Coffee](https://img.shields.io/badge/%20-Buy%20Me%20A%20Coffee-grey?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/elahd)
 
 ***
 
