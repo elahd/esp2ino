@@ -27,7 +27,7 @@ Theoretically, esp2ino can convert most new ESP8266 based devices. See [Contibut
 
 ## How it Works
 
-Manufacturer firmware for ESP8266-based devices is usually built on the [ESP8266 RTOS SDK](https://github.com/espressif/ESP8266_RTOS_SDK). This SDK is maintained by Espressif, the chip's manufacturer. ESP8266_RTOS_SDK's [bootloader](https://en.wikipedia.org/wiki/Bootloader) cannot boot Arduino-based firmware. In order to boot Arduino-based firmware, you must replace the ESP8266_RTOS_SDK bootloader. There are two options for doing this:
+Manufacturer firmware for ESP8266-based devices are usually built on the [ESP8266 RTOS SDK](https://github.com/espressif/ESP8266_RTOS_SDK). This SDK is maintained by Espressif, the chip's manufacturer. ESP8266_RTOS_SDK's [bootloader](https://en.wikipedia.org/wiki/Bootloader) cannot boot Arduino-based firmware. In order to boot Arduino-based firmware, you have to replace the ESP8266_RTOS_SDK bootloader. There are now two options for doing this:
 
 1. __Serial Connection:__ Physically open the device and load firmware over a serial connection while the device is offline. This is easy on some devices, but is destructive and time-consuming on others.
 2. __esp2ino:__ Force the device to load esp2ino. Once installed, esp2ino replaces the ESP8266_RTOS_SDK bootloader with Arduino's eboot bootloader _while the device is running_. It then loads the Arduino-based firmware of your choice onto the device. After performing this critical task, esp2ino deletes itself.
@@ -52,7 +52,7 @@ See install page in the [wiki](https://github.com/elahd/esp2ino/wiki).
 
 # Contributing
 
-See [Contributing]([wiki](https://github.com/elahd/esp2ino/wiki/Contributing)) page in the wiki or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
+See the [Contributing](https://github.com/elahd/esp2ino/wiki/Contributing) page in the wiki or just <a href="https://www.buymeacoffee.com/elahd" target="_blank">buy me a coffee</a>.
 
 ***
 
