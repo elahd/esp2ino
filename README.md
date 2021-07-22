@@ -1,5 +1,11 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/elahd/esp2ino) ![GitHub all releases](https://img.shields.io/github/downloads/elahd/esp2ino/total) ![GitHub](https://img.shields.io/github/license/elahd/esp2ino) [![Buy Me A Coffee](https://img.shields.io/badge/%20-Buy%20Me%20A%20Coffee-grey?logo=buy-me-a-coffee)](https://www.buymeacoffee.com/elahd)
 
+☠☠☠
+
+__Wyze recently changed their API in a way that prevents esp2ino from being loaded onto their devices.__ If you're technically inclined, see [this GitHub issue](https://github.com/HclX/WyzeUpdater/issues/9#issuecomment-885030254) for a workaround. Otherwise, check back here for updates...
+
+☠☠☠
+
 ***
 
 <div align="center">
